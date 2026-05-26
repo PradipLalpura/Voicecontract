@@ -17,11 +17,16 @@ async def transcribe_audio(file_bytes: bytes, filename: str) -> dict:
         raise ValueError("GROQ_API_KEY not found in environment")
 
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}"}
-    files = {"file": (filename, file_bytes), "model": (None, MODEL)}
+    
+    # Explicitly separate files and data
+    files = {"file": (filename, file_bytes)}
+    data = {"model": MODEL}
 
     async with httpx.AsyncClient(timeout=60.0) as client:
         try:
-            response = await client.post(BASE_URL, headers=headers, files=files)
+            response = await client.post(BASE_URL, headers=headers, files=files, data=data)
+            if response.status_code != 200:
+                print(f"Groq Error Body: {response.text}")
             response.raise_for_status()
             data = response.json()
             return {

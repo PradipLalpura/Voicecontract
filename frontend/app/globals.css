@@ -30,54 +30,79 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
   
-  /* VoiceContract Brand Colors */
-  --color-brand-green: #22c55e;
-  --color-brand-amber: #f59e0b;
+  /* Antarik Brand Colors - Dark Theme */
+  --color-brand-cyan: #00C2CC;
+  --color-brand-gold: #E8C547;
+  --color-brand-violet: #7B5CE5;
+  --color-brand-void: #080E1A;
+  --color-brand-surface: #0F1825;
+  --color-brand-layer: #162038;
+  --color-brand-starlight: #EDF2FF;
+  --color-brand-dusk: #7A8BA6;
+
+  /* Typography */
+  --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Editorial New', 'Times New Roman', serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #f5f5f5;
-  --card: #111111;
-  --card-foreground: #f5f5f5;
-  --popover: #111111;
-  --popover-foreground: #f5f5f5;
-  --primary: #22c55e;
-  --primary-foreground: #0a0a0a;
-  --secondary: #1f1f1f;
-  --secondary-foreground: #f5f5f5;
-  --muted: #1f1f1f;
-  --muted-foreground: #888888;
-  --accent: #22c55e;
-  --accent-foreground: #0a0a0a;
-  --destructive: #ef4444;
-  --destructive-foreground: #f5f5f5;
-  --border: #1f1f1f;
-  --input: #1f1f1f;
-  --ring: #22c55e;
+  /* Defaulting to Dark Theme as per Antarik DNA for premium digital experiences */
+  --background: #080E1A; /* Void */
+  --foreground: #EDF2FF; /* Starlight */
+  --card: #0F1825; /* Surface */
+  --card-foreground: #EDF2FF; /* Starlight */
+  --popover: #0F1825; /* Surface */
+  --popover-foreground: #EDF2FF; /* Starlight */
+  
+  --primary: #00C2CC; /* Signal Cyan */
+  --primary-foreground: #080E1A; /* Void (for contrast) */
+  
+  --secondary: #162038; /* Layer */
+  --secondary-foreground: #EDF2FF; /* Starlight */
+  
+  --muted: #162038; /* Layer */
+  --muted-foreground: #7A8BA6; /* Dusk */
+  
+  --accent: #162038; /* Layer */
+  --accent-foreground: #00C2CC; /* Signal Cyan */
+  
+  --destructive: #ef4444; 
+  --destructive-foreground: #EDF2FF; 
+  
+  --border: #1E2D45; /* Border */
+  --input: #1E2D45; /* Border */
+  --ring: #2A3F60; /* Border Active */
+  
   --radius: 12px;
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #f5f5f5;
-  --card: #111111;
-  --card-foreground: #f5f5f5;
-  --popover: #111111;
-  --popover-foreground: #f5f5f5;
-  --primary: #22c55e;
-  --primary-foreground: #0a0a0a;
-  --secondary: #1f1f1f;
-  --secondary-foreground: #f5f5f5;
-  --muted: #1f1f1f;
-  --muted-foreground: #888888;
-  --accent: #22c55e;
-  --accent-foreground: #0a0a0a;
+  --background: #080E1A;
+  --foreground: #EDF2FF;
+  --card: #0F1825;
+  --card-foreground: #EDF2FF;
+  --popover: #0F1825;
+  --popover-foreground: #EDF2FF;
+  
+  --primary: #00C2CC;
+  --primary-foreground: #080E1A;
+  
+  --secondary: #162038;
+  --secondary-foreground: #EDF2FF;
+  
+  --muted: #162038;
+  --muted-foreground: #7A8BA6;
+  
+  --accent: #162038;
+  --accent-foreground: #00C2CC;
+  
   --destructive: #ef4444;
-  --destructive-foreground: #f5f5f5;
-  --border: #1f1f1f;
-  --input: #1f1f1f;
-  --ring: #22c55e;
+  --destructive-foreground: #EDF2FF;
+  
+  --border: #1E2D45;
+  --input: #1E2D45;
+  --ring: #2A3F60;
 }
 
 @layer base {
@@ -86,6 +111,12 @@
   }
   body {
     @apply bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: var(--font-sans);
+    line-height: 1.6;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    /* Headlines: Large, confident, italic Editorial New */
+    font-style: italic;
   }
 }

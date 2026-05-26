@@ -35,7 +35,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
   - [x] Agent 4: PDF (pdfkit)
   - [x] FastAPI Routes & Security
 - [x] Phase 2: Frontend Build
-- [ ] Phase 3: Integration & Deploy
+- [x] Phase 3: Integration & Deploy
 
 ## Decisions Made
 - Shifted from NVIDIA NIM to Gemini Flash for faster, free extraction.
