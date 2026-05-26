@@ -47,7 +47,20 @@ async def process_transcript(transcript: str) -> dict:
             
             # Parse the content string from the response
             content = result['choices'][0]['message']['content']
-            return json.loads(content)
+            parsed = json.loads(content)
+            
+            # Ensure the output is nested correctly for the frontend
+            # The frontend expects { "terms": {...}, "gaps": [...] }
+            if "terms" in parsed and "gaps" in parsed:
+                return parsed
+            
+            # If the LLM returned a flat structure (likely), we wrap it
+            return {
+                "terms": parsed,
+                "gaps": [], # Default to empty, Agent 3 will handle missing gaps
+                "has_gaps": False,
+                "gap_count": 0
+            }
             
         except Exception as e:
             print(f"Groq Extraction Error: {str(e)}")
