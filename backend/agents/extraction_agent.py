@@ -1,16 +1,13 @@
 import os
 import json
-from google import genai
-from google.genai import types
+import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-MODEL_ID = "gemini-2.0-flash"
-
-# Initialize the client
-client = genai.Client(api_key=GEMINI_API_KEY)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+MODEL_ID = "llama-3.3-70b-versatile"
+BASE_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 def load_prompt(filename):
     path = os.path.join(os.path.dirname(__file__), "..", "..", "prompts", filename)
@@ -19,38 +16,52 @@ def load_prompt(filename):
 
 async def process_transcript(transcript: str) -> dict:
     """
-    Extracts terms and analyzes gaps using Gemini 2.0 Flash.
-    Two-step reasoning in one call for speed.
+    Extracts terms and analyzes gaps using Groq Llama 3.3 70B.
+    Replacing Gemini to avoid 429 Quota Exhausted errors.
     """
     extraction_prompt = load_prompt("extraction_prompt.md")
     gap_prompt = load_prompt("gap_analysis_prompt.md")
 
-    # Combine prompts for unified reasoning
     system_instruction = f"{extraction_prompt}\n\nTHEN perform gap analysis as per this instruction:\n{gap_prompt}"
     
-    prompt = f"Meeting Transcript:\n{transcript}\n\nReturn the final JSON containing both 'terms' and 'gaps' keys."
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "model": MODEL_ID,
+        "messages": [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": f"Meeting Transcript:\n{transcript}\n\nReturn the final JSON containing both 'terms' and 'gaps' keys."}
+        ],
+        "response_format": {"type": "json_object"},
+        "temperature": 0.1
+    }
 
-    try:
-        response = client.models.generate_content(
-            model=MODEL_ID,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction,
-                response_mime_type="application/json",
-                temperature=0.1
-            )
-        )
-        
-        # Safely parse JSON
-        result = json.loads(response.text)
-        return result
-    except Exception as e:
-        print(f"Gemini Extraction Error: {str(e)}")
-        # Return fallback empty state to prevent crash
-        return {
-            "terms": {},
-            "gaps": [],
-            "has_gaps": True,
-            "gap_count": 0,
-            "error": str(e)
-        }
+    async with httpx.AsyncClient(timeout=45.0) as client:
+        try:
+            response = await client.post(BASE_URL, headers=headers, json=payload)
+            response.raise_for_status()
+            result = response.json()
+            
+            # Parse the content string from the response
+            content = result['choices'][0]['message']['content']
+            return json.loads(content)
+            
+        except Exception as e:
+            print(f"Groq Extraction Error: {str(e)}")
+            # Return fallback empty state to prevent crash
+            return {
+                "terms": {},
+                "gaps": [
+                    {
+                        "field": "all",
+                        "warning": "The extraction agent encountered an error and couldn't process the transcript.",
+                        "default_value": "Please review the transcript manually."
+                    }
+                ],
+                "has_gaps": True,
+                "gap_count": 1,
+                "error": str(e)
+            }

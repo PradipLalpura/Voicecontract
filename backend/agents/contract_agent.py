@@ -34,6 +34,7 @@ async def generate_contract(terms: dict, gaps: list, company_details: dict) -> d
     }
 
     try:
+        print(f"Calling GitHub Models ({MODEL_ID}) for contract generation...")
         response = client.chat.completions.create(
             model=MODEL_ID,
             messages=[
@@ -44,7 +45,12 @@ async def generate_contract(terms: dict, gaps: list, company_details: dict) -> d
             max_tokens=2500
         )
         
+        if not response.choices:
+            print(f"GitHub Models Empty Response: {response}")
+            raise ValueError("No response choices returned from GPT-4o")
+
         contract_text = response.choices[0].message.content
+        print(f"Successfully generated contract ({len(contract_text.split())} words)")
         
         return {
             "contract": contract_text,
@@ -52,5 +58,7 @@ async def generate_contract(terms: dict, gaps: list, company_details: dict) -> d
             "model": MODEL_ID
         }
     except Exception as e:
-        print(f"Contract Generation Error: {str(e)}")
+        print(f"Contract Generation Error Details: {str(e)}")
+        if hasattr(e, 'response'):
+            print(f"API Response: {e.response.text if hasattr(e.response, 'text') else e.response}")
         raise e
