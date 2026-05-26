@@ -34,7 +34,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
   - [x] Agent 3: Contract (GPT-4o)
   - [x] Agent 4: PDF (pdfkit)
   - [x] FastAPI Routes & Security
-- [ ] Phase 2: Frontend Build
+- [x] Phase 2: Frontend Build
 - [ ] Phase 3: Integration & Deploy
 
 ## Decisions Made
