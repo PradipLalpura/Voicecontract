@@ -45,7 +45,9 @@ export async function generateContract(terms: DealTerms, gaps: Gap[], companyDet
         company_name: companyDetails.companyName,
         your_name: companyDetails.yourName,
         gst_number: companyDetails.gstNumber,
-        address: companyDetails.address
+        address: companyDetails.address,
+        logo: companyDetails.logo,
+        brand_dna: companyDetails.brandDna
       } 
     }),
   });
@@ -68,7 +70,9 @@ export async function downloadPDF(contract: string, companyDetails: CompanyDetai
         company_name: companyDetails.companyName,
         your_name: companyDetails.yourName,
         gst_number: companyDetails.gstNumber,
-        address: companyDetails.address
+        address: companyDetails.address,
+        logo: companyDetails.logo,
+        brand_dna: companyDetails.brandDna
       } 
     }),
   });

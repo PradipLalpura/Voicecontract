@@ -115,6 +115,7 @@ def _build_user_content(
         "deal_terms": _apply_gap_defaults(terms, gaps),
         "gaps_addressed": gaps,
         "service_provider": company_details,
+        "brand_dna_context": company_details.get("brand_dna", "Professional, precise, and direct."),
         "drafting_requirements": {
             "jurisdiction": "India",
             "law": "Indian Contract Act, 1872",

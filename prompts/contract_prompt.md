@@ -8,7 +8,7 @@ INPUT:
 3. Company Details (Your company)
 
 INSTRUCTIONS:
-- Tone: Professional, authoritative, yet readable.
+- Tone: Follow the specific voice and tone provided in the 'brand_dna_context'. If none is provided, default to Professional, authoritative, yet readable.
 - Be specific: Use exact names, amounts, and dates from the input.
 - Structure:
   1. PARTIES: Clearly define Service Provider (using provided details) and Client (from terms).

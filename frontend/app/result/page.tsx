@@ -90,7 +90,7 @@ export default function ResultPage() {
 
         {/* Right Column: Contract Preview */}
         <div className="lg:col-span-2 h-full order-1 lg:order-2">
-          <ContractPreview contract={data.contract} />
+          <ContractPreview contract={data.contract} companyDetails={data.companyDetails} />
         </div>
 
       </div>
