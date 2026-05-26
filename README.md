@@ -1,49 +1,67 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/PradipLalpura/voicecontract/main/frontend/public/logo-placeholder.png" alt="VoiceContract Logo" width="120" />
+  <img src="https://raw.githubusercontent.com/PradipLalpura/voicecontract/main/Voicecontract.png" alt="VoiceContract Banner" width="800" style="border-radius: 12px; margin-bottom: 20px;" />
   
   # 🎙️ VoiceContract
-  **"Where your brand lives online. The meeting ends. The paperwork is already done."**
+  **"The meeting ends. The paperwork is already done."**
   
-  [![Outskill x OpenAI](https://img.shields.io/badge/Hackathon-Outskill%20x%20OpenAI-00C2CC?style=for-the-badge&logo=openai)](https://github.com/PradipLalpura/voicecontract)
-  [![Next.js 14](https://img.shields.io/badge/Next.js%2014-080E1A?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-  [![FastAPI](https://img.shields.io/badge/FastAPI-0F1825?style=for-the-badge&logo=fastapi&logoColor=00C2CC)](https://fastapi.tiangolo.com/)
-  [![Antarik DNA](https://img.shields.io/badge/Design-Antarik%20DNA-7B5CE5?style=for-the-badge)](https://github.com/PradipLalpura/voicecontract)
+  [![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-00C2CC?style=for-the-badge)](https://voicecontract-fsnrozj2g-pradiplalpuras-projects.vercel.app/)
+  [![Backend Status](https://img.shields.io/badge/Backend-Railway-0F1825?style=for-the-badge&logo=fastapi)](https://voicecontract-production.up.railway.app/health)
+  [![Built for Builders](https://img.shields.io/badge/Built%20For-Outskill%20x%20OpenAI-7B5CE5?style=for-the-badge)](https://github.com/PradipLalpura/voicecontract)
 
-  ### Spoken client agreements to professional legal contracts in 60 seconds.
+  ### Transforming spoken client agreements into professional, legally-sound contracts in under 60 seconds.
 </div>
 
 ---
 
-## 🌌 The Vision
-Every day, freelancers and agencies lose money and face disputes because the gap between a "verbal agreement" and a "signed contract" is too wide. **VoiceContract** bridges that gap. It is an agentic AI pipeline that listens to your client meetings, extracts the binding terms, catches missing legal gaps, and generates a structured Service Agreement, GST Invoice, and Purchase Order — ready to send before the call even ends.
+## 🌌 The Problem
+Millions of freelancers and agency owners lose revenue every year because of a critical gap: **The time between a verbal agreement and a signed contract.** 
+- Clients forget details. 
+- Deadlines shift. 
+- "That's not what we agreed on" becomes a project-killing phrase.
+The friction of drafting paperwork manually often leads to work starting without protection.
 
-## 🧠 The Agentic Pipeline
-VoiceContract uses a high-speed, 4-agent parallel architecture designed for precision and reliability:
+## 🛠️ The Solution: VoiceContract MVP
+VoiceContract is an intelligent, agent-driven pipeline that bridges this gap instantly. It doesn't just transcribe; it **reasons**.
 
-1.  **Agent 1 (Groq Whisper):** Transcribes high-fidelity meeting audio to text with blazing speed.
-2.  **Agent 2 (Llama 3.3 70B):** Extracts 8 specific deal terms and performs a comprehensive **Gap Analysis** to identify missing critical clauses.
-3.  **Agent 3 (OpenAI GPT-4o / Codex):** The reasoning engine. Generates legally-sound clauses based on the Indian Contract Act, 1872, adapting to your brand's specific DNA.
-4.  **Agent 4 (fpdf2):** A deterministic assembly engine that formats the final PDF with your logo and professional branding.
+### **The Intelligent Pipeline**
+1.  **High-Speed Transcription:** Powered by **Groq Whisper**, converting meeting recordings to text with near-zero latency.
+2.  **Autonomous Extraction:** A **70B parameter LLM** scans the transcript to extract 8 critical deal terms (Scope, Price, Timeline, IP, etc.).
+3.  **Legal Gap Analysis:** The system identifies what you *didn't* discuss and automatically applies standard protective defaults.
+4.  **Codex-Driven Drafting:** Using **OpenAI GPT-4o**, the engine drafts a custom Service Agreement tailored to the specific context of your conversation.
+5.  **Instant Assembly:** A pure Python engine generates a high-fidelity PDF with your branding, ready for signatures.
 
-## ✨ The Antarik Experience
-Designed with the **Antarik Brand DNA**, VoiceContract follows the "Atmosphere Before Dawn" aesthetic:
-- **Void & Starlight:** A deep, professional dark theme that removes noise and focuses on the signal.
-- **Signal Cyan:** High-precision accents for clear user pathways.
-- **Editorial Typography:** Authoritative serif headlines paired with clean, functional body text.
+---
 
-## 🛡️ Hackathon Perfection
-*   **Codex Integration:** We used Codex (OpenAI GPT-4o) as the primary legal reasoning engine, capable of complex multi-clause generation and logical mapping.
-*   **Triple-Layer Fallback:** Built with extreme reliability. If one provider fails, the system automatically routes through fallbacks to ensure the 60-second delivery promise is never broken.
-*   **Pydantic Security:** Every byte of data is strictly validated and sanitized to ensure a hack-proof, production-ready environment.
+## ⚡ Key MVP Features
+- **Personalized Branding:** Upload your company logo once; it appears on every generated document and in the app preview.
+- **Brand DNA Integration:** Upload your own contract format or brand guidelines. Our AI adopts your specific tone and legal structure automatically.
+- **Indian Contract Act Compliance:** Generated clauses are structured to meet professional standards for service providers in India.
+- **60-Second Turnaround:** From audio upload to final PDF in less than a minute.
 
-## 🚀 Technical Stack
-- **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, shadcn/ui.
-- **Backend:** FastAPI (Python 3.11).
-- **Inference:** Groq (Whisper-large-v3-turbo, Llama-3.3-70b-versatile), GitHub Models (GPT-4o).
-- **PDF Engine:** fpdf2 (Pure Python).
+---
+
+## 📖 How to Use VoiceContract
+Experience the future of freelance paperwork in three simple steps:
+
+1.  **Establish Your Identity:**
+    Fill in your company name, GST number, and address. Upload your logo to ensure every contract looks like it came from your office.
+2.  **Upload Your Meeting:**
+    Drop an MP3 or WAV recording of your client call (up to 25MB). 
+3.  **Review & Download:**
+    Watch the real-time pipeline status. Review the **Gap Alerts** for terms you missed during the call, preview your contract, and hit **Download PDF**.
+
+---
+
+## 🚀 Technical Excellence
+- **Frontend:** Next.js 14 App Router (Tailwind CSS + shadcn/ui)
+- **Backend:** FastAPI (Python 3.11)
+- **Intelligence:** Groq (Whisper/Llama 3.3), OpenAI GPT-4o (GitHub Models)
+- **Architecture:** Multi-agent sequential pipeline with triple-layer failure recovery.
 
 ---
 
 <div align="center">
-  Built for the <b>Outskill x OpenAI AI Builders Hackathon</b> by <b>Pradip Lalpura | JPN Studio / Antarik</b>
+  <b>VoiceContract</b> — Where your brand lives online. 
+  <br />
+  Built by <b>Pradip Lalpura</b> | JPN Studio / Antarik
 </div>
