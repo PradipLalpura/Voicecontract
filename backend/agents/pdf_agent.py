@@ -65,25 +65,25 @@ class ContractPDF(FPDF):
 def create_pdf(contract_text: str, company_details: dict) -> bytes:
     """
     Takes plain text contract and company details and generates PDF bytes using fpdf2.
-    Purely professional B&W style for legal weight.
+    Enhanced layout with larger logos and better vertical rhythm.
     """
     raw_contract_text = contract_text or ""
-    # We do NOT sanitize yet, we want to preserve as much as possible 
-    # but fpdf needs latin-1.
     
     pdf = ContractPDF(orientation="P", unit="mm", format="A4")
     pdf.set_auto_page_break(auto=True, margin=20)
     pdf.add_page()
     
-    # 1. DUAL LOGO HEADER
-    y_start = 15
+    # 1. DUAL LOGO HEADER (Increased size and improved alignment)
+    y_logo = 15
+    logo_height = 25 # Increased from 18
+    
     # Provider Logo (Left)
     if company_details.get('logo'):
         try:
             _, encoded = company_details.get('logo').split(",", 1)
             img_data = base64.b64decode(encoded)
             img_buf = io.BytesIO(img_data)
-            pdf.image(img_buf, x=20, y=y_start, h=18)
+            pdf.image(img_buf, x=20, y=y_logo, h=logo_height)
         except Exception as e:
             print(f"Provider Logo Error: {e}")
 
@@ -93,57 +93,63 @@ def create_pdf(contract_text: str, company_details: dict) -> bytes:
             _, encoded = company_details.get('client_logo').split(",", 1)
             img_data = base64.b64decode(encoded)
             img_buf = io.BytesIO(img_data)
-            pdf.image(img_buf, x=155, y=y_start, h=18)
+            # Calculated X to align with right margin
+            pdf.image(img_buf, x=150, y=y_logo, h=logo_height)
         except Exception as e:
             print(f"Client Logo Error: {e}")
 
-    # 2. DOCUMENT TITLE & IDENTITIES
-    pdf.set_font("helvetica", "B", 14)
+    # 2. DOCUMENT TITLE
+    pdf.set_font("helvetica", "B", 16)
     pdf.set_text_color(0, 0, 0)
-    pdf.set_xy(20, y_start + 25)
+    pdf.set_xy(20, y_logo + logo_height + 10)
     pdf.cell(0, 10, "MASTER SERVICE AGREEMENT", align="C", ln=True)
     
-    # Horizontal line (Professional Gray)
-    pdf.set_draw_color(100, 100, 100)
-    pdf.set_line_width(0.5)
+    # Horizontal separator
+    pdf.set_draw_color(0, 0, 0)
+    pdf.set_line_width(0.8)
     pdf.line(20, pdf.get_y(), 190, pdf.get_y())
-    pdf.ln(5)
+    pdf.ln(8)
 
-    # Party Information Blocks
-    pdf.set_font("helvetica", "B", 9)
-    pdf.set_text_color(80, 80, 80)
+    # 3. PARTY IDENTITY BLOCKS (Refined Layout)
+    pdf.set_font("helvetica", "B", 10)
+    pdf.set_text_color(60, 60, 60)
     
-    # Provider Details
-    pdf.set_x(20)
+    y_blocks = pdf.get_y()
+    # Left Block: Service Provider
+    pdf.set_xy(20, y_blocks)
     pdf.cell(85, 5, "SERVICE PROVIDER", ln=False)
-    # Client Details
-    pdf.set_x(110)
+    # Right Block: Client
+    pdf.set_xy(110, y_blocks)
     pdf.cell(85, 5, "CLIENT", ln=True)
     
-    pdf.set_font("helvetica", "", 9)
+    pdf.set_font("helvetica", "", 10)
     pdf.set_text_color(0, 0, 0)
     
     provider_name = _company_value(company_details, "company_name", "Not Provided")
     client_name = _company_value(company_details, "client_name", "Not Provided")
     
-    # Row 1
+    # Row 1: Names
     pdf.set_x(20)
-    pdf.cell(85, 5, provider_name, ln=False)
+    pdf.cell(85, 6, provider_name.upper(), ln=False)
     pdf.set_x(110)
-    pdf.cell(85, 5, client_name, ln=True)
+    pdf.cell(85, 6, client_name.upper(), ln=True)
     
-    # Row 2 (Address/GST)
-    pdf.set_font("helvetica", "", 8)
+    # Row 2: Signatory / GST
+    pdf.set_font("helvetica", "", 9)
     pdf.set_text_color(100, 100, 100)
     pdf.set_x(20)
-    pdf.cell(85, 4, f"GST: {_company_value(company_details, 'gst_number', 'N/A')}", ln=False)
+    pdf.cell(85, 5, f"GST: {_company_value(company_details, 'gst_number', 'N/A')}", ln=False)
     pdf.set_x(110)
-    pdf.cell(85, 4, f"Date of Issue: {datetime.now().strftime('%d %B %Y')}", ln=True)
+    pdf.cell(85, 5, f"Issued on: {datetime.now().strftime('%d %B %Y')}", ln=True)
     
-    pdf.ln(10)
+    # Row 3: Address
+    pdf.set_x(20)
+    pdf.multi_cell(85, 4, _company_value(company_details, "address"), align="L")
+    
+    pdf.ln(12)
 
-    # 3. BODY CONTENT
-    pdf.set_font("helvetica", "", 10.5)
+    # 4. CONTRACT BODY CONTENT
+    pdf.set_font("helvetica", "", 11)
     pdf.set_text_color(0, 0, 0)
     
     # Global sanitize the main text once
@@ -156,42 +162,43 @@ def create_pdf(contract_text: str, company_details: dict) -> bytes:
             pdf.ln(3)
             continue
             
-        # Detect numbered sections (e.g., 1.0, 2.0) or ALL CAPS HEADERS
-        is_section = (line[0:1].isdigit() and "." in line[0:3]) or (line.isupper() and len(line) < 50)
+        # Refined section header detection
+        is_section = (line[0:1].isdigit() and "." in line[0:3]) or (line.isupper() and len(line) < 60)
         
         if is_section:
-            pdf.ln(4)
-            pdf.set_font("helvetica", "B", 11)
-            pdf.cell(0, 8, line.upper(), ln=True)
-            pdf.set_font("helvetica", "", 10.5)
+            pdf.ln(5)
+            pdf.set_font("helvetica", "B", 12)
+            pdf.cell(0, 10, line.upper(), ln=True)
+            pdf.set_font("helvetica", "", 11)
         else:
-            pdf.multi_cell(0, 5.5, line, align="J")
+            pdf.multi_cell(0, 6, line, align="J")
             pdf.ln(1.5)
 
-    # 4. SIGNATURE SECTION
-    if pdf.get_y() > 230:
+    # 5. SIGNATURE EXECUTION
+    if pdf.get_y() > 220:
         pdf.add_page()
     
-    pdf.ln(20)
+    pdf.ln(25)
     y_sig = pdf.get_y()
-    pdf.set_draw_color(150, 150, 150)
-    pdf.set_line_width(0.2)
+    pdf.set_draw_color(0, 0, 0)
+    pdf.set_line_width(0.3)
     
-    # Signature Lines
+    # Provider Signature
     pdf.line(20, y_sig + 20, 85, y_sig + 20)
-    pdf.set_font("helvetica", "B", 9)
+    pdf.set_font("helvetica", "B", 10)
     pdf.set_xy(20, y_sig + 22)
     pdf.cell(65, 5, provider_name)
-    pdf.set_font("helvetica", "", 8)
-    pdf.set_xy(20, y_sig + 26)
+    pdf.set_font("helvetica", "", 9)
+    pdf.set_xy(20, y_sig + 27)
     pdf.cell(65, 5, f"By: {_company_value(company_details, 'your_name', 'Authorised Signatory')}")
 
+    # Client Signature
     pdf.line(125, y_sig + 20, 190, y_sig + 20)
-    pdf.set_font("helvetica", "B", 9)
+    pdf.set_font("helvetica", "B", 10)
     pdf.set_xy(125, y_sig + 22)
     pdf.cell(65, 5, client_name)
-    pdf.set_font("helvetica", "", 8)
-    pdf.set_xy(125, y_sig + 26)
+    pdf.set_font("helvetica", "", 9)
+    pdf.set_xy(125, y_sig + 27)
     pdf.cell(65, 5, "By: Authorised Signatory")
 
     try:
