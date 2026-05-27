@@ -20,6 +20,10 @@ def create_pdf(contract_text: str, company_details: dict) -> bytes:
     Takes plain text contract and company details and generates PDF bytes using fpdf2.
     Pure Python implementation, no external binary needed.
     """
+    # Sanitize Unicode characters that standard PDF fonts (Helvetica) don't support
+    # Most common culprit is the Indian Rupee symbol '₹'
+    contract_text = contract_text.replace("₹", "INR ")
+    
     pdf = ContractPDF(orientation="P", unit="mm", format="A4")
     pdf.set_auto_page_break(auto=True, margin=20)
     pdf.add_page()
