@@ -3,8 +3,10 @@ export interface CompanyDetails {
   yourName: string;
   gstNumber: string;
   address: string;
-  logo?: string; // base64 string
-  brandDna?: string; // Text from their brand document
+  logo?: string; // Provider logo (base64)
+  clientName: string;
+  clientLogo?: string; // Client logo (base64)
+  brandDna?: string; // Custom formatting/legal context
 }
 
 export interface Gap {

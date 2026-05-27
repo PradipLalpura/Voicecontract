@@ -9,8 +9,10 @@ class CompanyDetails(BaseModel):
     your_name: Optional[str] = "Authorised Representative"
     gst_number: Optional[str] = "Not provided"
     address: Optional[str] = "Not provided"
-    logo: Optional[str] = None # Base64 encoded logo
-    brand_dna: Optional[str] = None # Text from brand document
+    logo: Optional[str] = None
+    client_name: Optional[str] = "The Client"
+    client_logo: Optional[str] = None
+    brand_dna: Optional[str] = None
 
 class GenerateRequest(BaseModel):
     # Making these Optional with default values to prevent 422 errors
