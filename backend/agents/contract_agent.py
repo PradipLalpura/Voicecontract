@@ -25,7 +25,7 @@ MAX_OUTPUT_TOKENS = int(os.getenv("CONTRACT_AGENT_MAX_OUTPUT_TOKENS", "3500"))
 
 
 def load_prompt(filename: str) -> str:
-    path = os.path.join(os.path.dirname(__file__), "..", "..", "prompts", filename)
+    path = os.path.join(os.path.dirname(__file__), "..", "prompts", filename)
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 

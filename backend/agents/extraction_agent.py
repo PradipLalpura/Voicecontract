@@ -10,7 +10,7 @@ MODEL_ID = "llama-3.3-70b-versatile"
 BASE_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 def load_prompt(filename):
-    path = os.path.join(os.path.dirname(__file__), "..", "..", "prompts", filename)
+    path = os.path.join(os.path.dirname(__file__), "..", "prompts", filename)
     with open(path, "r") as f:
         return f.read()
 
