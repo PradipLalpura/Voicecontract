@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 from models import PDFRequest
-from agents.pdf_agent import create_pdf
+from agents.pdf_agent import create_document
 from datetime import datetime
 
 router = APIRouter()
@@ -9,7 +9,7 @@ router = APIRouter()
 @router.post("/pdf")
 async def generate_pdf(request: PDFRequest):
     try:
-        pdf_bytes = create_pdf(
+        document = create_document(
             request.contract, 
             request.company_details.model_dump()
         )
@@ -17,10 +17,10 @@ async def generate_pdf(request: PDFRequest):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         
         return Response(
-            content=pdf_bytes,
-            media_type="application/pdf",
+            content=document.content,
+            media_type=document.media_type,
             headers={
-                "Content-Disposition": f'attachment; filename="voicecontract_{timestamp}.pdf"'
+                "Content-Disposition": f'attachment; filename="voicecontract_{timestamp}.{document.file_extension}"'
             }
         )
     except Exception as e:
