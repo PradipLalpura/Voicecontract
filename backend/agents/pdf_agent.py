@@ -75,14 +75,15 @@ def create_pdf(contract_text: str, company_details: dict) -> bytes:
     
     # 1. DUAL LOGO HEADER (Increased size and improved alignment)
     y_logo = 15
-    logo_height = 25 # Increased from 18
-    
+    logo_height = 35 # Increased from 25
+
     # Provider Logo (Left)
     if company_details.get('logo'):
         try:
             _, encoded = company_details.get('logo').split(",", 1)
             img_data = base64.b64decode(encoded)
             img_buf = io.BytesIO(img_data)
+            # Use a slightly wider area for the logo to maintain aspect ratio
             pdf.image(img_buf, x=20, y=y_logo, h=logo_height)
         except Exception as e:
             print(f"Provider Logo Error: {e}")
@@ -93,16 +94,16 @@ def create_pdf(contract_text: str, company_details: dict) -> bytes:
             _, encoded = company_details.get('client_logo').split(",", 1)
             img_data = base64.b64decode(encoded)
             img_buf = io.BytesIO(img_data)
-            # Calculated X to align with right margin
-            pdf.image(img_buf, x=150, y=y_logo, h=logo_height)
+            # Calculated X to align with right margin, giving it more space
+            pdf.image(img_buf, x=145, y=y_logo, h=logo_height)
         except Exception as e:
             print(f"Client Logo Error: {e}")
 
     # 2. DOCUMENT TITLE
-    pdf.set_font("helvetica", "B", 16)
+    pdf.set_font("helvetica", "B", 18) # Increased font size
     pdf.set_text_color(0, 0, 0)
-    pdf.set_xy(20, y_logo + logo_height + 10)
-    pdf.cell(0, 10, "MASTER SERVICE AGREEMENT", align="C", ln=True)
+    pdf.set_xy(20, y_logo + logo_height + 8)
+    pdf.cell(0, 12, "MASTER SERVICE AGREEMENT", align="C", ln=True)
     
     # Horizontal separator
     pdf.set_draw_color(0, 0, 0)
