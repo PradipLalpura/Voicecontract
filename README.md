@@ -76,5 +76,5 @@ voicecontract/
 <div align="center">
   <b>VoiceContract</b> — Where your brand lives online. 
   <br />
-  Built by <b>Pradip Lalpura</b> | JPN Studio / Antarik
+  Built by <b>Pradip Lalpura</b> | Antarik - a JPN STUDIO brand
 </div>
