@@ -1,6 +1,7 @@
 import { CompanyDetails, DealTerms, Gap } from './types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+console.log('📡 VoiceContract API URL:', API_URL);
 
 export async function transcribeAudio(file: File): Promise<{ transcript: string, duration: number }> {
   const formData = new FormData();
