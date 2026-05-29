@@ -5,13 +5,9 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { 
-  SignInButton, 
-  SignedIn, 
-  SignedOut, 
-  UserButton 
-} from "@clerk/nextjs";
+import * as Clerk from "@clerk/nextjs";
 import Background3D, { CharacterScene } from "@/components/Background3D";
+import { SafeAuth } from "@/components/SafeAuth";
 
 gsap.registerPlugin(useGSAP);
 
@@ -19,6 +15,8 @@ export default function LandingPage() {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const headlineRef = useRef<HTMLHeadingElement>(null);
+  
+  const hasClerk = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
   useGSAP(() => {
     const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
@@ -52,22 +50,22 @@ export default function LandingPage() {
           <button className="nav-item hover:text-signal hover:tracking-[0.5em] transition-all">Security</button>
           
           <div className="nav-item">
-            <SignedOut>
-              <SignInButton mode="modal">
+            <SafeAuth mode="signedOut">
+              <Clerk.SignInButton mode="modal">
                 <button className="px-10 py-4 bg-white text-void rounded-2xl hover:bg-signal transition-all shadow-premium font-bold hover:scale-105 active:scale-95">
                   Access_Nexus
                 </button>
-              </SignInButton>
-            </SignedOut>
-            <SignedIn>
+              </Clerk.SignInButton>
+            </SafeAuth>
+            <SafeAuth mode="signedIn">
               <button 
                 onClick={() => router.push('/dashboard')}
                 className="px-10 py-4 bg-signal text-void rounded-2xl hover:brightness-110 transition-all shadow-premium font-bold hover:scale-105 active:scale-95 mr-6"
               >
                 Go_To_Dashboard
               </button>
-              <UserButton />
-            </SignedIn>
+              {hasClerk && <Clerk.UserButton />}
+            </SafeAuth>
           </div>
         </div>
       </nav>
@@ -91,17 +89,17 @@ export default function LandingPage() {
           </p>
 
           <div className="hero-sub flex gap-10">
-            <SignedOut>
-              <SignInButton mode="modal">
+            <SafeAuth mode="signedOut">
+              <Clerk.SignInButton mode="modal">
                 <button className="group relative px-20 py-10 bg-signal text-void font-sans font-black text-sm uppercase tracking-[0.5em] rounded-[40px] shadow-[0_30px_60px_rgba(0,194,204,0.3)] hover:brightness-110 hover:translate-y-[-8px] transition-all duration-700 overflow-hidden">
                   <span className="relative z-10">Initialize_Genesis</span>
                   <motion.div animate={{ x: ["-100%", "100%"] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="absolute inset-0 bg-white/20 skew-x-12 opacity-0 group-hover:opacity-100" />
                 </button>
-              </SignInButton>
-            </SignedOut>
-            <SignedIn>
+              </Clerk.SignInButton>
+            </SafeAuth>
+            <SafeAuth mode="signedIn">
                <button onClick={() => router.push('/dashboard')} className="px-20 py-10 bg-signal text-void font-sans font-black text-sm uppercase tracking-[0.5em] rounded-[40px] shadow-[0_30px_60px_rgba(0,194,204,0.3)] hover:brightness-110 hover:translate-y-[-8px] transition-all duration-700">Open_Vault</button>
-            </SignedIn>
+            </SafeAuth>
           </div>
         </div>
 

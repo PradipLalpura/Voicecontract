@@ -7,11 +7,26 @@ export const metadata: Metadata = {
   description: "The world's most immersive autonomous legal department.",
 };
 
+const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // If Clerk key is missing, we render without ClerkProvider to prevent the 500 error
+  if (!clerkKey) {
+    return (
+      <html lang="en">
+        <body className="bureau-grid selection:bg-signal/30 text-white bg-void">
+          <main className="min-h-screen">
+            {children}
+          </main>
+        </body>
+      </html>
+    );
+  }
+
   return (
     <ClerkProvider
       appearance={{

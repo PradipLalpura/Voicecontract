@@ -3,20 +3,29 @@
 import { useEffect, useState, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { UserButton, useUser } from "@clerk/nextjs";
+import * as Clerk from "@clerk/nextjs";
 import Background3D, { CharacterScene } from "@/components/Background3D";
 import MultimodalIngestor from "@/components/MultimodalIngestor";
 import IdentityWizard from "@/components/IdentityWizard";
+import { useSafeUser } from "@/hooks/useSafeUser";
 
 type ViewState = "hub" | "onboarding" | "blueprint";
 
 export default function DashboardHub() {
   const router = useRouter();
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded } = useSafeUser();
   const [view, setView] = useState<ViewState>("hub");
-  const [onboarded, setOnboarding] = useState(false);
+  
+  const hasClerk = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-  if (!isLoaded) return null;
+  if (!isLoaded) return (
+    <div className="min-h-screen bg-void flex items-center justify-center">
+       <div className="w-12 h-12 border-2 border-signal border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
+  const displayName = user?.firstName || 'Chief';
+  const displayNode = user?.id?.slice(0,8) || 'LOCAL';
 
   return (
     <div className="min-h-screen bg-void text-white font-sans p-10 md:p-16 flex flex-col bureau-grid overflow-hidden relative selection:bg-signal/30">
@@ -37,10 +46,12 @@ export default function DashboardHub() {
         <div className="flex items-center gap-10">
            <div className="hidden md:flex gap-8 font-system text-[9px] font-black uppercase tracking-[0.4em] text-text/30">
               <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-signal rounded-full animate-pulse"/> Session_Secure</div>
-              <div className="flex items-center gap-2">Node: {user?.id?.slice(0,8)}</div>
+              <div className="flex items-center gap-2">Node: {displayNode}</div>
            </div>
            <div className="w-px h-6 bg-white/10" />
-           <UserButton />
+           {hasClerk ? <Clerk.UserButton /> : <div className="w-10 h-10 bg-white/5 rounded-full border border-white/10 flex items-center justify-center text-[10px] font-black text-text/20 overflow-hidden">
+              <img src={(user as any).imageUrl} alt="User" />
+           </div>}
         </div>
       </header>
 
@@ -54,13 +65,11 @@ export default function DashboardHub() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="flex-1 flex flex-col"
             >
-              {/* Welcome Banner */}
               <div className="mb-16">
                  <span className="font-system text-[11px] font-black text-signal tracking-[0.6em] uppercase block mb-4">Identity_Verified</span>
-                 <h1 className="text-6xl font-display tracking-tighter leading-none">Welcome back, <span className="text-signal italic">{user?.firstName || 'Chief'}</span></h1>
+                 <h1 className="text-6xl font-display tracking-tighter leading-none">Welcome back, <span className="text-signal italic">{displayName}</span></h1>
               </div>
 
-              {/* Action Hub - Playful 3D Strategy Cards */}
               <div className="mb-20">
                 <MultimodalIngestor onSelect={(strategy) => {
                   if (strategy === 'architect') setView("onboarding");
@@ -68,7 +77,6 @@ export default function DashboardHub() {
                 }} />
               </div>
 
-              {/* Kanban Deal Stream */}
               <div className="flex-1 bg-surface/40 backdrop-blur-3xl border border-white/5 rounded-[60px] p-16 shadow-2xl relative overflow-hidden beveled-edge">
                  <div className="flex justify-between items-end mb-12 border-b border-white/5 pb-8">
                     <div className="space-y-2">
@@ -78,7 +86,6 @@ export default function DashboardHub() {
                     <button className="px-8 py-3 bg-white/5 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-[0.4em] hover:bg-white/10 transition-all">Export_Report</button>
                  </div>
 
-                 {/* Kanban Grid */}
                  <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {["DRAFT", "SENT", "VIEWED", "SIGNED"].map(col => (
                       <div key={col} className="space-y-6">
@@ -147,7 +154,6 @@ export default function DashboardHub() {
         </AnimatePresence>
       </main>
 
-      {/* Dashboard Footer Stats */}
       <footer className="fixed bottom-0 left-0 w-full h-16 border-t border-white/5 flex items-center justify-between px-16 bg-surface/80 backdrop-blur-xl z-[100]">
         <div className="flex gap-12 font-system text-[9px] font-black text-text/20 uppercase tracking-[0.4em]">
            <span>TVL: ₹4,50,000.00</span>

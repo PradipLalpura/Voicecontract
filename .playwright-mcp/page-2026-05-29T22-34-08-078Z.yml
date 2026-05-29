@@ -1,0 +1,40 @@
+- generic [active]:
+  - alert [ref=e1]
+  - dialog "Server Error" [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - navigation [ref=e8]:
+          - button "previous" [disabled] [ref=e9]:
+            - img "previous" [ref=e10]
+          - button "next" [disabled] [ref=e12]:
+            - img "next" [ref=e13]
+          - generic [ref=e15]: 1 of 1 error
+          - generic [ref=e16]:
+            - text: Next.js (14.2.3) is outdated
+            - link "(learn more)" [ref=e18] [cursor=pointer]:
+              - /url: https://nextjs.org/docs/messages/version-staleness
+        - heading "Server Error" [level=1] [ref=e19]
+        - paragraph [ref=e20]: "Error: @clerk/nextjs: Missing publishableKey. You can get your key at https://dashboard.clerk.com/last-active?path=api-keys."
+        - generic [ref=e21]: This error happened while generating the page. Any console logs will be displayed in the terminal window.
+      - generic [ref=e22]:
+        - heading "Call Stack" [level=2] [ref=e23]
+        - generic [ref=e24]:
+          - heading "Object.throwMissingPublishableKeyError" [level=3] [ref=e25]
+          - generic [ref=e27]: node_modules\@clerk\shared\dist\chunk-T4WHYQYX.mjs (158:1)
+        - generic [ref=e28]:
+          - heading "eval" [level=3] [ref=e29]
+          - generic [ref=e31]: node_modules\@clerk\nextjs\dist\esm\server\clerkMiddleware.js (34:27)
+        - generic [ref=e32]:
+          - heading "assertKey" [level=3] [ref=e33]
+          - generic [ref=e35]: node_modules\@clerk\nextjs\dist\esm\server\utils.js (132:1)
+        - generic [ref=e36]:
+          - heading "eval" [level=3] [ref=e37]
+          - generic [ref=e39]: node_modules\@clerk\nextjs\dist\esm\server\clerkMiddleware.js (32:39)
+        - generic [ref=e40]:
+          - heading "Object.eval [as handler]" [level=3] [ref=e41]
+          - generic [ref=e43]: node_modules\@clerk\nextjs\dist\esm\utils\debugLogger.js (37:1)
+        - group [ref=e44]:
+          - generic "Next.js" [ref=e45] [cursor=pointer]:
+            - img [ref=e46]
+            - img [ref=e48]
+            - text: Next.js
