@@ -30,7 +30,6 @@ export default function IdentityWizard({ onComplete }: { onComplete: (data: Iden
         setData(prev => ({ ...prev, logo: base64String }));
         
         // CINEMATIC AUTO-TRANSITION
-        // We simulate a "System Processing" moment
         setTimeout(() => {
           onComplete({ ...data, logo: base64String });
         }, 1200);
@@ -40,7 +39,7 @@ export default function IdentityWizard({ onComplete }: { onComplete: (data: Iden
   }, [data, onComplete]);
 
   return (
-    <div className="w-full max-w-2xl bg-surface/90 backdrop-blur-2xl border border-border p-12 rounded-[50px] shadow-premium relative overflow-hidden">
+    <div className="w-full max-w-2xl bg-surface/90 backdrop-blur-3xl border border-border p-12 rounded-[50px] shadow-2xl relative overflow-hidden group">
       {/* Playful Floating Glow */}
       <motion.div 
         animate={{ 
@@ -219,7 +218,7 @@ export default function IdentityWizard({ onComplete }: { onComplete: (data: Iden
         <button 
           onClick={step === 3 ? () => onComplete(data) : next}
           className={`flex-1 px-14 py-6 font-sans font-black text-xs uppercase tracking-[0.3em] rounded-3xl shadow-premium transition-all active:scale-[0.95] ${
-            step === 3 && !data.logo ? 'bg-text/5 text-text/10 cursor-not-allowed border border-border' : 'bg-text text-void hover:bg-signal hover:shadow-signal/20'
+            step === 3 && !data.logo ? 'bg-text/5 text-text/10 cursor-not-allowed border border-border' : 'bg-text text-void hover:bg-signal hover:shadow-signal/20 font-bold'
           }`}
           disabled={step === 3 && !data.logo}
         >

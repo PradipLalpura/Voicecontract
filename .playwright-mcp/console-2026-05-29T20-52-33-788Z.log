@@ -241,3 +241,62 @@ https://nextjs.org/docs/messages/module-not-found
 Import trace for requested module:
 ./components/Background3D.tsx
 ./app/page.tsx @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:32
+[ 1800908ms] [ERROR] ./node_modules/@splinetool/react-spline/dist/react-spline.js:4:1
+Module not found: Can't resolve '@splinetool/runtime'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./components/Background3D.tsx
+./app/page.tsx @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:32
+[ 1800910ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:186
+[ 1801475ms] [ERROR] ./node_modules/@splinetool/react-spline/dist/react-spline.js:4:1
+Module not found: Can't resolve '@splinetool/runtime'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./components/Background3D.tsx
+./app/page.tsx @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:32
+[ 1842111ms] [ERROR] ./node_modules/@splinetool/react-spline/dist/react-spline.js:4:1
+Module not found: Can't resolve '@splinetool/runtime'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./components/Background3D.tsx
+./app/page.tsx @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:32
+[ 1842112ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:186
+[ 1842217ms] [ERROR] ./node_modules/@splinetool/react-spline/dist/react-spline.js:4:1
+Module not found: Can't resolve '@splinetool/runtime'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./components/Background3D.tsx
+./app/page.tsx @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:32
+[ 1842265ms] [ERROR] ./node_modules/@splinetool/react-spline/dist/react-spline.js:4:1
+Module not found: Can't resolve '@splinetool/runtime'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./components/Background3D.tsx
+./app/page.tsx @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:32
+[ 1895698ms] [ERROR] ./node_modules/@splinetool/react-spline/dist/react-spline.js:4:1
+Module not found: Can't resolve '@splinetool/runtime'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./components/Background3D.tsx
+./app/page.tsx @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:32
+[ 1895699ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:186
+[ 1895764ms] [ERROR] ./node_modules/@splinetool/react-spline/dist/react-spline.js:4:1
+Module not found: Can't resolve '@splinetool/runtime'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./components/Background3D.tsx
+./app/page.tsx @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:32
