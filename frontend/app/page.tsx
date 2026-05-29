@@ -6,6 +6,8 @@ import ScrollTrigger from "gsap/ScrollTrigger";
 import IdentityWizard from "@/components/IdentityWizard";
 import MultimodalIngestor from "@/components/MultimodalIngestor";
 
+import { motion } from "framer-motion";
+
 export default function LandingPage() {
   const [view, setView] = useState<"hero" | "onboarding" | "templates">("hero");
   const heroRef = useRef<HTMLDivElement>(null);
@@ -15,19 +17,19 @@ export default function LandingPage() {
     gsap.registerPlugin(ScrollTrigger);
 
     if (view === "hero") {
-      const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
+      const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
 
       tl.fromTo(
         headlineRef.current,
-        { y: 100, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1.2, stagger: 0.2 }
+        { y: 60, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1.5, stagger: 0.1 }
       );
 
       tl.fromTo(
         ".hero-sub",
-        { opacity: 0 },
-        { opacity: 1, duration: 1 },
-        "-=0.8"
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 1.2 },
+        "-=1"
       );
     }
 
@@ -37,79 +39,88 @@ export default function LandingPage() {
   }, [view]);
 
   return (
-    <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 overflow-hidden">
-      {/* Atmosphere Background */}
-      <div className="absolute inset-0 bg-noise-gradient opacity-40 pointer-events-none" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-signal/10 blur-[120px] rounded-full pointer-events-none" />
+    <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 overflow-hidden bg-void bureau-grid-light">
+      {/* Decorative Atmosphere */}
+      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-signal/5 blur-[150px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-signal/3 blur-[130px] rounded-full pointer-events-none" />
 
       {/* Navigation */}
-      <nav className="fixed top-0 w-full max-w-7xl flex justify-between items-center py-8 z-50 mix-blend-difference px-6">
-        <div className="text-xl font-system tracking-tighter text-signal uppercase cursor-pointer" onClick={() => setView("hero")}>
-          VoiceContract<span className="opacity-50">.Pro</span>
+      <nav className="fixed top-0 w-full max-w-7xl flex justify-between items-center py-10 z-50 px-6">
+        <div 
+          className="text-2xl font-display tracking-tight text-text cursor-pointer group" 
+          onClick={() => setView("hero")}
+        >
+          Voice<span className="text-signal italic group-hover:not-italic transition-all">Contract</span>
         </div>
-        <div className="flex gap-12 font-system text-xs tracking-widest uppercase opacity-70">
+        <div className="flex gap-10 font-sans text-[11px] font-bold tracking-[0.2em] uppercase text-text/40">
           <a href="#" className="hover:text-signal transition-colors">Protocol</a>
           <a href="#" className="hover:text-signal transition-colors">Archive</a>
-          <a href="#" className="hover:text-signal transition-colors">Auth</a>
+          <button className="px-5 py-2 bg-text text-void rounded-full hover:bg-signal transition-all">Launch Engine</button>
         </div>
       </nav>
 
       {view === "hero" && (
-        <section ref={heroRef} className="relative text-center w-full max-w-6xl">
+        <section ref={heroRef} className="relative text-center w-full max-w-5xl">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-8 inline-flex items-center gap-2 px-3 py-1 bg-signal/10 border border-signal/20 rounded-full text-[10px] font-bold text-signal uppercase tracking-widest"
+          >
+            <span className="w-1.5 h-1.5 bg-signal rounded-full animate-pulse" />
+            2026 Production Protocol v2.0
+          </motion.div>
+
           <h1 
             ref={headlineRef}
-            className="text-white font-display text-[clamp(2.5rem,8vw,5.5rem)] leading-[1.1] tracking-tight mb-8"
+            className="text-text font-display text-[clamp(2.5rem,7vw,5rem)] leading-[1.05] tracking-tight mb-10"
           >
             The meeting ends.<br/>
-            <span className="text-signal italic">The paperwork is already done.</span>
+            <span className="text-text/30 italic">The paperwork is already done.</span>
           </h1>
           
-          <p className="hero-sub max-w-xl mx-auto text-white/50 font-sans text-lg md:text-xl mb-12 leading-relaxed">
-            The first autonomous legal co-pilot that listens, reasons, and dispatches 
-            boardroom-ready Master Service Agreements in under 60 seconds.
+          <p className="hero-sub max-w-2xl mx-auto text-text-muted font-sans text-xl mb-14 leading-relaxed tracking-tight">
+            An autonomous legal architecture that listens, reasons, and dispatches 
+            premium Master Service Agreements in under 60 seconds.
           </p>
 
-          <div className="hero-sub flex flex-col md:flex-row gap-4 justify-center items-center">
+          <div className="hero-sub flex flex-col md:flex-row gap-6 justify-center items-center">
             <button 
               onClick={() => setView("onboarding")}
-              className="group relative px-8 py-4 bg-signal text-void font-system text-sm font-bold uppercase tracking-widest overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="px-10 py-5 bg-signal text-void font-sans font-bold rounded-xl shadow-premium hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
             >
-              <span className="relative z-10">Initialize Onboarding</span>
-              <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out" />
+              Start Onboarding
             </button>
             
-            <button className="px-8 py-4 border border-white/10 hover:border-signal/50 text-white font-system text-sm uppercase tracking-widest transition-all">
-              Watch Technical Audit
+            <button className="px-10 py-5 bg-surface border border-border text-text font-sans font-semibold rounded-xl hover:bg-surface-muted transition-all duration-300">
+              Technical Overview
             </button>
           </div>
         </section>
       )}
 
       {view === "onboarding" && (
-        <section className="relative z-20 w-full flex justify-center py-20">
+        <section className="relative z-20 w-full flex justify-center py-20 animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <IdentityWizard onComplete={() => setView("templates")} />
         </section>
       )}
 
       {view === "templates" && (
-        <section className="relative z-20 w-full flex flex-col items-center py-20">
-          <div className="mb-16 text-center">
-            <span className="font-system text-[10px] text-signal tracking-[0.4em] uppercase">Intelligence Node: Active</span>
-            <h2 className="text-4xl font-display text-white mt-4">Select Template Strategy</h2>
+        <section className="relative z-20 w-full flex flex-col items-center py-20 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <div className="mb-20 text-center">
+            <span className="font-sans text-[11px] font-black text-signal tracking-[0.4em] uppercase">Intelligence Node</span>
+            <h2 className="text-5xl font-display text-text mt-4">Template Strategy</h2>
           </div>
           <MultimodalIngestor />
         </section>
       )}
 
-      {/* Grid Decals */}
-      <div className="fixed bottom-12 left-12 font-system text-[10px] text-white/20 tracking-[0.2em] uppercase vertical-text origin-left -rotate-90">
-        Engine_Status: Operational // Logic: GPT-4o_Supreme
+      {/* Decorative Decals */}
+      <div className="fixed bottom-10 left-10 font-system text-[9px] text-text/20 tracking-[0.3em] uppercase">
+        Infrastructure: Zero-Trust // Logic: GPT-4o_Supreme
       </div>
-      <div className="fixed bottom-12 right-12 font-system text-[10px] text-white/20 tracking-[0.2em] uppercase">
-        ©2026 Antarik // Bureaucratic_Noir_v2.0
+      <div className="fixed bottom-10 right-10 font-system text-[9px] text-text/20 tracking-[0.3em] uppercase">
+        ©2026 Antarik // Pristine_Bureaucracy_v2.0
       </div>
     </div>
   );
 }
-
-

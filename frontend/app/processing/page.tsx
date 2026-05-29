@@ -40,8 +40,7 @@ export default function ProcessingPage() {
           router.push(`/sign/${sessionId}`);
         }, 1500);
       }
-    }, 1200);
-
+    }, 1000);
     return () => clearInterval(interval);
   }, [router, sessionId]);
 
@@ -49,64 +48,75 @@ export default function ProcessingPage() {
     if (barRef.current) {
       gsap.to(barRef.current, {
         width: `${progress}%`,
-        duration: 0.8,
-        ease: "power2.out"
+        duration: 0.6,
+        ease: "expo.out"
       });
     }
   }, [progress]);
 
   return (
-    <div className="min-h-screen bg-void text-white font-sans flex flex-col items-center justify-center p-6 bureau-grid">
+    <div className="min-h-screen bg-void text-text font-sans flex flex-col items-center justify-center p-10 bureau-grid-light">
       
-      <div className="w-full max-w-3xl space-y-8">
+      <div className="w-full max-w-4xl space-y-12">
         
         {/* Progress Header */}
-        <div className="flex justify-between items-end border-b border-white/10 pb-4">
+        <div className="flex justify-between items-end border-b border-border pb-6">
           <div>
-            <span className="font-system text-[10px] text-signal tracking-[0.4em] uppercase">Processing Core</span>
-            <h1 className="text-3xl font-display mt-2 italic">Legal Synthesis In Progress</h1>
+            <span className="font-sans text-[11px] font-black text-signal tracking-[0.4em] uppercase">Processing Core</span>
+            <h1 className="text-4xl font-display mt-2 italic tracking-tight">Legal Synthesis Protocol</h1>
           </div>
-          <span className="font-system text-xl text-signal">{Math.round(progress)}%</span>
+          <div className="text-right">
+            <span className="font-system text-2xl text-text font-bold">{Math.round(progress)}%</span>
+            <div className="text-[10px] text-text/30 font-bold uppercase tracking-widest mt-1">Status: Active</div>
+          </div>
         </div>
 
         {/* The Theatre of Work Terminal */}
-        <div className="h-[400px] bg-surface/30 border border-white/5 beveled-edge p-8 font-system text-xs overflow-hidden flex flex-col justify-end">
-           <div className="space-y-3 custom-scrollbar overflow-y-auto">
+        <div className="h-[450px] bg-surface border border-border rounded-[40px] shadow-premium p-10 font-system text-xs overflow-hidden flex flex-col justify-end relative">
+           <div className="absolute top-0 left-0 w-full h-1 bg-signal/10 overflow-hidden">
+              <motion.div 
+                animate={{ x: ["-100%", "100%"] }} 
+                transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                className="w-1/3 h-full bg-signal"
+              />
+           </div>
+           
+           <div className="space-y-4 overflow-y-auto custom-scrollbar">
              <AnimatePresence initial={false}>
                {logs.map((log, i) => (
                  <motion.div 
                    key={i}
-                   initial={{ opacity: 0, x: -10 }}
+                   initial={{ opacity: 0, x: -5 }}
                    animate={{ opacity: 1, x: 0 }}
-                   className="flex gap-4 items-start"
+                   className="flex gap-6 items-start"
                  >
-                   <span className={`min-w-[100px] ${
-                     log.agent === "RED_TEAM" ? "text-red-400" : 
-                     log.agent === "STRATEGIST" ? "text-yellow-500" : "text-signal"
+                   <span className={`min-w-[110px] font-bold tracking-widest ${
+                     log.agent === "RED_TEAM" ? "text-red-500" : 
+                     log.agent === "STRATEGIST" ? "text-yellow-600" : "text-signal"
                    }`}>
                      [{log.agent}]
                    </span>
-                   <span className="text-white/60">{log.msg}</span>
+                   <span className="text-text/70 font-medium">{log.msg}</span>
                  </motion.div>
                ))}
              </AnimatePresence>
              <motion.div 
                animate={{ opacity: [1, 0] }}
                transition={{ repeat: Infinity, duration: 0.8 }}
-               className="w-2 h-4 bg-signal/50 inline-block"
+               className="w-2.5 h-4 bg-signal/30 inline-block align-middle ml-1"
              />
            </div>
         </div>
 
         {/* Global Progress Bar */}
-        <div className="w-full h-[2px] bg-white/5 relative">
-           <div ref={barRef} className="absolute top-0 left-0 h-full bg-signal signal-glow shadow-[0_0_15px_oklch(var(--signal))]" />
+        <div className="w-full h-1 bg-void rounded-full overflow-hidden shadow-beveled">
+           <div ref={barRef} className="h-full bg-signal shadow-[0_0_20px_oklch(70%_0.18_195)]" />
         </div>
 
         {/* Footer Meta */}
-        <div className="flex justify-between text-[9px] text-white/20 uppercase tracking-[0.2em]">
+        <div className="flex justify-between text-[10px] font-bold text-text/20 uppercase tracking-[0.3em]">
            <span>Node: Intelligence_Cluster_Alpha</span>
-           <span>Status: Transient_Memory_Encryption_Active</span>
+           <span>Security: Transient_Memory_Encryption</span>
         </div>
 
       </div>

@@ -1,10 +1,16 @@
-from __future__ import annotations
-
+import os
+import sys
 import logging
 from typing import Any, Protocol
 
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
+
+# --- ROBUST IMPORT SYSTEM ---
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
 
 try:
     from backend.agents.langgraph_firm import LegalDocumentPackage, execute_legal_firm

@@ -9,6 +9,7 @@ import os
 import secrets
 import struct
 import time
+import sys
 from collections import deque
 from dataclasses import dataclass, field
 from enum import IntEnum
@@ -18,6 +19,15 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.websockets import WebSocketState
 
+# --- ROBUST IMPORT SYSTEM ---
+# This ensures imports work whether running from root or from within /backend
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
 try:
     from backend.agents.context_agent import Commitment, ContextAgent, ContextAgentError
     from backend.agents.strategist_agent import StrategistAgent, StrategistAgentError
@@ -26,6 +36,7 @@ try:
     from backend.routers.dispatch import router as dispatch_router
     from backend.routers.dashboard import router as dashboard_router
 except ModuleNotFoundError:
+    # Fallback for internal folder imports
     from agents.context_agent import Commitment, ContextAgent, ContextAgentError
     from agents.strategist_agent import StrategistAgent, StrategistAgentError
     from agents.whisper_agent import TranscriptionError, WhisperAgent

@@ -21,48 +21,51 @@ export default function IdentityWizard({ onComplete }: { onComplete: () => void 
   const back = () => setStep(s => s - 1);
 
   return (
-    <div className="w-full max-w-2xl bg-surface/50 backdrop-blur-xl border border-white/5 p-12 beveled-edge relative overflow-hidden">
-      {/* Decorative Scan Line */}
-      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-signal/50 to-transparent animate-scan" />
+    <div className="w-full max-w-2xl bg-surface border border-border p-12 rounded-3xl shadow-premium relative overflow-hidden">
+      {/* Premium Gradient Header */}
+      <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-signal/20 via-signal to-signal/20" />
 
-      <div className="mb-12 flex justify-between items-end">
+      <div className="mb-14 flex justify-between items-start">
         <div>
-          <span className="font-system text-[10px] text-signal tracking-[0.3em] uppercase">Security Level: Omega</span>
-          <h2 className="text-2xl font-display text-white mt-2">Establish Entity Identity</h2>
+          <span className="font-sans text-[10px] font-black text-signal tracking-[0.4em] uppercase">Protocol Node 01</span>
+          <h2 className="text-3xl font-display text-text mt-3">Entity Identification</h2>
+          <p className="text-text-muted text-sm mt-2 font-sans">Establish your legal presence within the system.</p>
         </div>
-        <span className="font-system text-xl text-white/20">0{step} / 03</span>
+        <div className="h-14 w-14 rounded-2xl bg-void flex items-center justify-center border border-border shadow-beveled">
+          <span className="font-system text-lg text-text font-bold">0{step}</span>
+        </div>
       </div>
 
       <AnimatePresence mode="wait">
         {step === 1 && (
           <motion.div
             key="step1"
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -20, opacity: 0 }}
-            className="space-y-8"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-10"
           >
-            <div className="group">
-              <label className="block font-system text-[10px] text-white/40 uppercase tracking-widest mb-3 group-focus-within:text-signal transition-colors">
-                Registered Business Name
+            <div className="space-y-4">
+              <label className="block font-sans text-xs font-bold text-text uppercase tracking-widest">
+                Company Designation
               </label>
               <input 
                 type="text"
-                placeholder="ANTARIK SYSTEMS LTD"
-                className="w-full bg-void/50 border border-white/10 px-4 py-4 text-white font-sans focus:outline-none focus:border-signal/50 transition-all placeholder:text-white/10"
+                placeholder="e.g. ANTARIK SYSTEMS LTD"
+                className="w-full bg-void border border-border px-6 py-5 rounded-2xl text-text font-sans focus:outline-none focus:ring-4 focus:ring-signal/5 focus:border-signal transition-all placeholder:text-text/20 shadow-beveled"
                 value={data.company_name}
                 onChange={e => setData({...data, company_name: e.target.value})}
               />
             </div>
             
-            <div className="group">
-              <label className="block font-system text-[10px] text-white/40 uppercase tracking-widest mb-3 group-focus-within:text-signal transition-colors">
-                GST Identification Number
+            <div className="space-y-4">
+              <label className="block font-sans text-xs font-bold text-text uppercase tracking-widest">
+                Tax Identification (GST)
               </label>
               <input 
                 type="text"
                 placeholder="24AAAAA0000A1Z5"
-                className="w-full bg-void/50 border border-white/10 px-4 py-4 text-white font-sans focus:outline-none focus:border-signal/50 transition-all placeholder:text-white/10"
+                className="w-full bg-void border border-border px-6 py-5 rounded-2xl text-text font-sans focus:outline-none focus:ring-4 focus:ring-signal/5 focus:border-signal transition-all placeholder:text-text/20 shadow-beveled"
                 value={data.gst_number}
                 onChange={e => setData({...data, gst_number: e.target.value})}
               />
@@ -73,19 +76,19 @@ export default function IdentityWizard({ onComplete }: { onComplete: () => void 
         {step === 2 && (
           <motion.div
             key="step2"
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -20, opacity: 0 }}
-            className="space-y-8"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-10"
           >
-            <div className="group">
-              <label className="block font-system text-[10px] text-white/40 uppercase tracking-widest mb-3 group-focus-within:text-signal transition-colors">
-                Physical Business Address
+            <div className="space-y-4">
+              <label className="block font-sans text-xs font-bold text-text uppercase tracking-widest">
+                Registered Physical Address
               </label>
               <textarea 
                 rows={4}
-                placeholder="The Void, Sector 7, Ahmedabad"
-                className="w-full bg-void/50 border border-white/10 px-4 py-4 text-white font-sans focus:outline-none focus:border-signal/50 transition-all placeholder:text-white/10 resize-none"
+                placeholder="The Void, Sector 7, Ahmedabad, Gujarat"
+                className="w-full bg-void border border-border px-6 py-5 rounded-2xl text-text font-sans focus:outline-none focus:ring-4 focus:ring-signal/5 focus:border-signal transition-all placeholder:text-text/20 resize-none shadow-beveled"
                 value={data.address}
                 onChange={e => setData({...data, address: e.target.value})}
               />
@@ -96,38 +99,38 @@ export default function IdentityWizard({ onComplete }: { onComplete: () => void 
         {step === 3 && (
           <motion.div
             key="step3"
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -20, opacity: 0 }}
-            className="space-y-8"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-10"
           >
-            <div className="flex flex-col items-center justify-center border-2 border-dashed border-white/10 py-12 px-6 group hover:border-signal/30 transition-all cursor-pointer">
-              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 group-hover:bg-signal/10 transition-all">
-                <svg className="w-6 h-6 text-white/40 group-hover:text-signal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <div className="relative group border-2 border-dashed border-border rounded-3xl p-16 flex flex-col items-center justify-center text-center hover:bg-void hover:border-signal/30 transition-all cursor-pointer shadow-beveled bg-void/50">
+              <div className="w-20 h-20 bg-surface rounded-2xl flex items-center justify-center mb-6 shadow-premium group-hover:scale-110 transition-transform">
+                <svg className="w-8 h-8 text-signal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
-              <span className="font-system text-[10px] text-white/40 uppercase tracking-widest">Upload Corporate Seal / Logo</span>
-              <p className="text-[9px] text-white/20 mt-2">SVG, PNG, or High-Res JPG</p>
+              <span className="font-sans text-[11px] font-black text-text uppercase tracking-widest">Seal Transmission</span>
+              <p className="text-text-muted text-[10px] mt-2">Upload Corporate Logo (SVG/PNG)</p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="mt-12 flex gap-4">
+      <div className="mt-16 flex gap-6">
         {step > 1 && (
           <button 
             onClick={back}
-            className="px-8 py-4 border border-white/10 text-white/40 font-system text-xs uppercase tracking-widest hover:text-white hover:border-white/20 transition-all"
+            className="px-10 py-5 bg-surface border border-border text-text-muted font-sans font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-surface-muted transition-all"
           >
-            Previous
+            Back
           </button>
         )}
         <button 
           onClick={step === 3 ? onComplete : next}
-          className="flex-1 px-8 py-4 bg-signal text-void font-system text-xs font-bold uppercase tracking-widest transition-all hover:brightness-110 active:scale-[0.98]"
+          className="flex-1 px-10 py-5 bg-text text-void font-sans font-bold text-xs uppercase tracking-widest rounded-2xl shadow-premium hover:bg-signal transition-all active:scale-[0.98]"
         >
-          {step === 3 ? 'Establish Identity' : 'Proceed to Validation'}
+          {step === 3 ? 'Finalize Profile' : 'Next Protocol'}
         </button>
       </div>
     </div>

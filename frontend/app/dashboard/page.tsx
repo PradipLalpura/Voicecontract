@@ -32,7 +32,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate fetching dashboard data
     setTimeout(() => {
       setStats({
         total_value_locked: 450000,
@@ -54,61 +53,53 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-void flex items-center justify-center bureau-grid text-white">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-2 border-signal border-t-transparent rounded-full animate-spin" />
-          <span className="font-system text-[10px] uppercase tracking-[0.3em] text-signal">Loading Deal Memory...</span>
+      <div className="min-h-screen bg-void flex items-center justify-center bureau-grid-light text-text">
+        <div className="flex flex-col items-center gap-6">
+          <div className="w-16 h-16 border-4 border-signal border-t-transparent rounded-full animate-spin shadow-premium" />
+          <span className="font-sans text-[11px] font-black uppercase tracking-[0.4em] text-signal">Loading Deal Memory...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-void text-white font-sans p-8 md:p-12 flex flex-col bureau-grid overflow-y-auto">
+    <div className="min-h-screen bg-void text-text font-sans p-10 md:p-16 flex flex-col bureau-grid-light overflow-y-auto">
       
       {/* Header */}
-      <div className="flex justify-between items-center mb-12 border-b border-white/5 pb-8">
+      <div className="flex justify-between items-center mb-16 border-b border-border pb-10">
         <div>
-          <span className="font-system text-[10px] text-signal tracking-[0.4em] uppercase">Control Center</span>
-          <h1 className="text-4xl font-display mt-2">Deal Memory Dashboard</h1>
+          <span className="font-sans text-[11px] font-black text-signal tracking-[0.4em] uppercase">Executive Dashboard</span>
+          <h1 className="text-5xl font-display mt-2 tracking-tight">Deal Memory</h1>
         </div>
-        <div className="flex gap-4">
-           <button onClick={() => router.push("/cockpit")} className="px-6 py-2 bg-signal text-void font-system text-xs font-bold uppercase tracking-widest hover:brightness-110 transition-all">New Meeting</button>
-           <button onClick={() => router.push("/")} className="px-6 py-2 border border-white/10 text-white font-system text-xs uppercase tracking-widest hover:bg-white/5 transition-all">Logout</button>
+        <div className="flex gap-6">
+           <button onClick={() => router.push("/cockpit")} className="px-8 py-4 bg-signal text-void font-sans font-bold text-xs uppercase tracking-widest rounded-2xl shadow-premium hover:shadow-2xl transition-all">New Meeting</button>
+           <button onClick={() => router.push("/")} className="px-8 py-4 border border-border text-text-muted font-sans font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-surface transition-all">Logout</button>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-        <div className="bg-surface/30 p-6 border border-white/5 beveled-edge">
-          <div className="font-system text-[9px] text-white/40 uppercase mb-2">Total Value Locked</div>
-          <div className="text-3xl font-display text-signal">₹{stats?.total_value_locked.toLocaleString()}</div>
-          <div className="mt-2 text-[10px] text-green-500 font-system">+12.5% this month</div>
-        </div>
-        <div className="bg-surface/30 p-6 border border-white/5 beveled-edge">
-          <div className="font-system text-[9px] text-white/40 uppercase mb-2">Conversion Rate</div>
-          <div className="text-3xl font-display text-white">{stats?.conversion_rate}%</div>
-          <div className="mt-2 text-[10px] text-white/20 font-system">Outperforming Industry</div>
-        </div>
-        <div className="bg-surface/30 p-6 border border-white/5 beveled-edge">
-          <div className="font-system text-[9px] text-white/40 uppercase mb-2">Avg. Deal Velocity</div>
-          <div className="text-3xl font-display text-white">4.2 Days</div>
-          <div className="mt-2 text-[10px] text-white/20 font-system">Meeting to Signature</div>
-        </div>
-        <div className="bg-surface/30 p-6 border border-yellow-500/20 bg-yellow-500/5 beveled-edge">
-          <div className="font-system text-[9px] text-yellow-500/50 uppercase mb-2 italic">Friction Alert</div>
-          <div className="text-xl font-display text-white">{stats?.top_friction_pillar}</div>
-          <div className="mt-2 text-[10px] text-yellow-500/40 font-system leading-tight">Identify alternative revision caps to close 2x faster.</div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16">
+        {[
+          { label: "Total Value Locked", val: `₹${stats?.total_value_locked.toLocaleString()}`, sub: "+12.5% Month", color: "text-signal" },
+          { label: "Conversion Rate", val: `${stats?.conversion_rate}%`, sub: "High Efficiency", color: "text-text" },
+          { label: "Deal Velocity", val: "4.2 Days", sub: "Avg. Cycle", color: "text-text" },
+          { label: "Friction Hotspot", val: stats?.top_friction_pillar, sub: "Action Required", color: "text-red-500" },
+        ].map((s, i) => (
+          <div key={i} className="bg-surface p-8 border border-border rounded-3xl shadow-premium group hover:border-signal/30 transition-all">
+            <div className="font-sans text-[10px] font-black text-text/30 uppercase mb-3 tracking-widest">{s.label}</div>
+            <div className={`text-3xl font-display ${s.color}`}>{s.val}</div>
+            <div className="mt-3 text-[11px] text-text/40 font-bold font-system">{s.sub}</div>
+          </div>
+        ))}
       </div>
 
       {/* Kanban Board */}
-      <div className="flex-1 flex gap-6 overflow-x-auto pb-8 custom-scrollbar">
+      <div className="flex-1 flex gap-8 overflow-x-auto pb-10 custom-scrollbar">
         {(["drafted", "sent", "viewed", "signed"] as DealStatus[]).map(status => (
-          <div key={status} className="flex-1 min-w-[300px] flex flex-col gap-4">
-            <div className="flex justify-between items-center px-2 py-1 border-b border-white/10 mb-2">
-               <span className="font-system text-[10px] text-white/30 uppercase tracking-widest">{status}</span>
-               <span className="bg-white/5 px-2 py-0.5 rounded-full text-[9px] text-white/40 font-system">
+          <div key={status} className="flex-1 min-w-[320px] flex flex-col gap-6">
+            <div className="flex justify-between items-center px-4 py-2 border-b-2 border-border mb-2">
+               <span className="font-sans text-[11px] font-black text-text/40 uppercase tracking-widest">{status}</span>
+               <span className="bg-void border border-border px-3 py-1 rounded-full text-[10px] font-black text-text/60">
                  {deals.filter(d => d.status === status).length}
                </span>
             </div>
@@ -118,47 +109,29 @@ export default function Dashboard() {
                 <motion.div 
                   key={deal.id}
                   layoutId={deal.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-surface/50 border border-white/5 p-5 beveled-edge group cursor-pointer hover:border-signal/30 transition-all"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-surface border border-border p-6 rounded-3xl shadow-premium group cursor-pointer hover:border-signal transition-all"
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="font-display text-lg text-white group-hover:text-signal transition-colors">{deal.client_name}</h3>
-                    <span className="text-[10px] text-white/20 font-system uppercase">{deal.id}</span>
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="font-display text-xl text-text group-hover:text-signal transition-colors">{deal.client_name}</h3>
+                    <span className="text-[10px] text-text/20 font-black font-system">#{deal.id}</span>
                   </div>
                   <div className="flex justify-between items-end">
-                    <div className="text-sm font-system text-white/50">₹{deal.total_value_inr.toLocaleString()}</div>
-                    <div className="text-[9px] text-white/20 uppercase font-system tracking-widest">{deal.created_at}</div>
+                    <div className="text-base font-system font-bold text-text/60">₹{deal.total_value_inr.toLocaleString()}</div>
+                    <div className="text-[10px] text-text/30 font-bold uppercase tracking-widest">{deal.created_at}</div>
                   </div>
                 </motion.div>
               ))}
             </AnimatePresence>
 
             {deals.filter(d => d.status === status).length === 0 && (
-              <div className="border border-dashed border-white/5 rounded-lg py-12 flex items-center justify-center">
-                <span className="font-system text-[9px] text-white/10 uppercase tracking-tighter italic">Void Space</span>
+              <div className="border-2 border-dashed border-border/50 rounded-[32px] py-16 flex items-center justify-center bg-void/30">
+                <span className="font-sans text-[10px] text-text/10 font-black uppercase tracking-[0.4em] italic">Open Slot</span>
               </div>
             )}
           </div>
         ))}
-      </div>
-
-      {/* Business Intelligence Footer */}
-      <div className="mt-auto pt-12 border-t border-white/5 flex justify-between items-center opacity-40">
-        <div className="flex gap-8">
-           <div className="flex flex-col">
-             <span className="text-[9px] uppercase font-system tracking-widest mb-1">Current Protocol</span>
-             <span className="text-xs text-white/80">Antarik-Noir 2.0</span>
-           </div>
-           <div className="flex flex-col">
-             <span className="text-[9px] uppercase font-system tracking-widest mb-1">Global Sentiment</span>
-             <span className="text-xs text-white/80">Bullish (Strong Closure)</span>
-           </div>
-        </div>
-        <div className="text-right">
-           <span className="text-[9px] uppercase font-system tracking-widest block mb-1">Node Identification</span>
-           <span className="text-xs text-white/80 uppercase">Ahmedabad_Cluster_01</span>
-        </div>
       </div>
 
     </div>

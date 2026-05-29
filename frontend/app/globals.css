@@ -3,43 +3,50 @@
 @tailwind utilities;
 
 :root {
-  --void: 12% 0.02 260;
-  --surface: 18% 0.03 260;
-  --signal: 75% 0.15 195;
+  --void: 98% 0.005 260;
+  --surface: 100% 0 0;
+  --signal: 70% 0.18 195;
+  --text: 25% 0.02 260;
 }
 
 body {
   background-color: oklch(var(--void));
-  color: oklch(95% 0.01 260);
+  color: oklch(var(--text));
   font-family: 'Satoshi', sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
-.bureau-grid {
+.bureau-grid-light {
   background-image: 
-    linear-gradient(to right, oklch(var(--surface) / 0.1) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(var(--surface) / 0.1) 1px, transparent 1px);
-  background-size: 40px 40px;
+    linear-gradient(to right, oklch(0% 0 0 / 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0% 0 0 / 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
 }
 
-.beveled-edge {
-  border: 1px solid oklch(25% 0.02 260 / 0.3);
+.glass-card {
+  background: oklch(var(--surface) / 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid oklch(0% 0 0 / 0.05);
+  box-shadow: 0 10px 30px -10px oklch(0% 0 0 / 0.05);
+}
+
+.signal-text {
+  color: oklch(var(--signal));
+}
+
+.premium-shadow {
   box-shadow: 
-    inset 1px 1px 0px oklch(100% 0 0 / 0.05),
-    0px 10px 30px oklch(0% 0 0 / 0.5);
-}
-
-.signal-glow {
-  filter: drop-shadow(0 0 8px oklch(var(--signal) / 0.4));
+    0 4px 6px -1px oklch(0% 0 0 / 0.01),
+    0 2px 4px -2px oklch(0% 0 0 / 0.01);
 }
 
 ::selection {
-  background-color: oklch(var(--signal) / 0.3);
-  color: white;
+  background-color: oklch(var(--signal) / 0.1);
+  color: oklch(var(--signal));
 }
 
-/* Custom scrollbar for Bureaucratic Noir */
+/* Custom scrollbar for Pristine Bureaucracy */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -47,9 +54,19 @@ body {
   background: oklch(var(--void));
 }
 ::-webkit-scrollbar-thumb {
-  background: oklch(var(--surface));
+  background: oklch(90% 0.01 260);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: oklch(var(--signal) / 0.5);
+  background: oklch(var(--signal) / 0.3);
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
 }
