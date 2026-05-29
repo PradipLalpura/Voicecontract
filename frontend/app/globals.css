@@ -25,60 +25,49 @@ body {
 }
 
 .glass-morphism {
-  background: rgba(26, 26, 26, 0.7);
-  backdrop-filter: blur(40px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  background: rgba(13, 13, 13, 0.6);
+  backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 30px 60px 0 rgba(0, 0, 0, 0.5);
 }
 
 .beveled-edge {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.05), 0 20px 50px rgba(0,0,0,0.3);
 }
 
-.signal-glow {
-  text-shadow: 0 0 20px rgba(0, 194, 204, 0.5);
-}
-
-::selection {
-  background-color: rgba(0, 194, 204, 0.2);
-  color: var(--signal);
-}
-
-/* Custom scrollbar for Midnight Graphite */
-::-webkit-scrollbar {
-  width: 5px;
-}
-::-webkit-scrollbar-track {
-  background: var(--void);
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--signal);
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-.animate-float {
-  animation: float 5s ease-in-out infinite;
+.perspective-1000 {
+  perspective: 1000px;
 }
 
 @keyframes scan-line {
   0% { transform: translateY(-100%); opacity: 0; }
-  50% { opacity: 1; }
+  50% { opacity: 0.5; }
   100% { transform: translateY(100%); opacity: 0; }
 }
 
 .scan-line {
   background: linear-gradient(to bottom, transparent, var(--signal), transparent);
-  height: 40px;
+  height: 100px;
   width: 100%;
   position: absolute;
-  animation: scan-line 3s linear infinite;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  pointer-events: none;
+  animation: scan-line 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--signal);
 }

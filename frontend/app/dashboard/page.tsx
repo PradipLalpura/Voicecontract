@@ -1,139 +1,162 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { UserButton, useUser } from "@clerk/nextjs";
+import Background3D, { CharacterScene } from "@/components/Background3D";
+import MultimodalIngestor from "@/components/MultimodalIngestor";
+import IdentityWizard from "@/components/IdentityWizard";
 
-// --- Types ---
-type DealStatus = "drafted" | "sent" | "viewed" | "signed" | "cancelled";
+type ViewState = "hub" | "onboarding" | "blueprint";
 
-interface Deal {
-  id: string;
-  client_name: string;
-  total_value_inr: number;
-  status: DealStatus;
-  created_at: string;
-  top_friction?: string;
-}
-
-interface Stats {
-  total_value_locked: number;
-  pending_revenue: number;
-  average_deal_size: number;
-  deal_count: number;
-  conversion_rate: number;
-  top_friction_pillar: string;
-}
-
-export default function Dashboard() {
+export default function DashboardHub() {
   const router = useRouter();
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user, isLoaded } = useUser();
+  const [view, setView] = useState<ViewState>("hub");
+  const [onboarded, setOnboarding] = useState(false);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setStats({
-        total_value_locked: 450000,
-        pending_revenue: 125000,
-        average_deal_size: 75000,
-        deal_count: 8,
-        conversion_rate: 72.5,
-        top_friction_pillar: "Revision Policy"
-      });
-      setDeals([
-        { id: "1", client_name: "Acme Corp", total_value_inr: 50000, status: "signed", created_at: "2026-05-28" },
-        { id: "2", client_name: "Global Tech", total_value_inr: 120000, status: "sent", created_at: "2026-05-29" },
-        { id: "3", client_name: "Nexus Labs", total_value_inr: 85000, status: "drafted", created_at: "2026-05-30" },
-        { id: "4", client_name: "Stellar Soft", total_value_inr: 45000, status: "viewed", created_at: "2026-05-30" },
-      ]);
-      setLoading(false);
-    }, 1200);
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-void flex items-center justify-center bureau-grid-light text-text">
-        <div className="flex flex-col items-center gap-6">
-          <div className="w-16 h-16 border-4 border-signal border-t-transparent rounded-full animate-spin shadow-premium" />
-          <span className="font-sans text-[11px] font-black uppercase tracking-[0.4em] text-signal">Loading Deal Memory...</span>
-        </div>
-      </div>
-    );
-  }
+  if (!isLoaded) return null;
 
   return (
-    <div className="min-h-screen bg-void text-text font-sans p-10 md:p-16 flex flex-col bureau-grid-light overflow-y-auto">
-      
-      {/* Header */}
-      <div className="flex justify-between items-center mb-16 border-b border-border pb-10">
-        <div>
-          <span className="font-sans text-[11px] font-black text-signal tracking-[0.4em] uppercase">Executive Dashboard</span>
-          <h1 className="text-5xl font-display mt-2 tracking-tight">Deal Memory</h1>
+    <div className="min-h-screen bg-void text-white font-sans p-10 md:p-16 flex flex-col bureau-grid overflow-hidden relative selection:bg-signal/30">
+      <Suspense fallback={null}><Background3D /></Suspense>
+
+      {/* Security Overlay Decal */}
+      <div className="fixed inset-0 border-[1px] border-white/5 pointer-events-none z-50 opacity-20" />
+
+      {/* Dashboard Header */}
+      <header className="fixed top-0 left-0 w-full h-24 border-b border-white/5 flex items-center justify-between px-16 bg-surface/60 backdrop-blur-2xl z-[100] shadow-2xl">
+        <div className="flex items-center gap-6 group cursor-pointer" onClick={() => setView("hub")}>
+           <div className="w-10 h-10 bg-signal/20 border border-signal/40 rounded-xl flex items-center justify-center group-hover:bg-signal transition-all">
+              <span className="text-signal group-hover:text-void font-bold text-sm">V</span>
+           </div>
+           <h2 className="text-xl font-display font-bold italic tracking-tighter">Vault_Dashboard</h2>
         </div>
-        <div className="flex gap-6">
-           <button onClick={() => router.push("/cockpit")} className="px-8 py-4 bg-signal text-void font-sans font-bold text-xs uppercase tracking-widest rounded-2xl shadow-premium hover:shadow-2xl transition-all">New Meeting</button>
-           <button onClick={() => router.push("/")} className="px-8 py-4 border border-border text-text-muted font-sans font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-surface transition-all">Logout</button>
+        
+        <div className="flex items-center gap-10">
+           <div className="hidden md:flex gap-8 font-system text-[9px] font-black uppercase tracking-[0.4em] text-text/30">
+              <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-signal rounded-full animate-pulse"/> Session_Secure</div>
+              <div className="flex items-center gap-2">Node: {user?.id?.slice(0,8)}</div>
+           </div>
+           <div className="w-px h-6 bg-white/10" />
+           <UserButton afterSignOutUrl="/" />
         </div>
-      </div>
+      </header>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16">
-        {[
-          { label: "Total Value Locked", val: `₹${stats?.total_value_locked.toLocaleString()}`, sub: "+12.5% Month", color: "text-signal" },
-          { label: "Conversion Rate", val: `${stats?.conversion_rate}%`, sub: "High Efficiency", color: "text-text" },
-          { label: "Deal Velocity", val: "4.2 Days", sub: "Avg. Cycle", color: "text-text" },
-          { label: "Friction Hotspot", val: stats?.top_friction_pillar, sub: "Action Required", color: "text-red-500" },
-        ].map((s, i) => (
-          <div key={i} className="bg-surface p-8 border border-border rounded-3xl shadow-premium group hover:border-signal/30 transition-all">
-            <div className="font-sans text-[10px] font-black text-text/30 uppercase mb-3 tracking-widest">{s.label}</div>
-            <div className={`text-3xl font-display ${s.color}`}>{s.val}</div>
-            <div className="mt-3 text-[11px] text-text/40 font-bold font-system">{s.sub}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Kanban Board */}
-      <div className="flex-1 flex gap-8 overflow-x-auto pb-10 custom-scrollbar">
-        {(["drafted", "sent", "viewed", "signed"] as DealStatus[]).map(status => (
-          <div key={status} className="flex-1 min-w-[320px] flex flex-col gap-6">
-            <div className="flex justify-between items-center px-4 py-2 border-b-2 border-border mb-2">
-               <span className="font-sans text-[11px] font-black text-text/40 uppercase tracking-widest">{status}</span>
-               <span className="bg-void border border-border px-3 py-1 rounded-full text-[10px] font-black text-text/60">
-                 {deals.filter(d => d.status === status).length}
-               </span>
-            </div>
-            
-            <AnimatePresence>
-              {deals.filter(d => d.status === status).map(deal => (
-                <motion.div 
-                  key={deal.id}
-                  layoutId={deal.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="bg-surface border border-border p-6 rounded-3xl shadow-premium group cursor-pointer hover:border-signal transition-all"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="font-display text-xl text-text group-hover:text-signal transition-colors">{deal.client_name}</h3>
-                    <span className="text-[10px] text-text/20 font-black font-system">#{deal.id}</span>
-                  </div>
-                  <div className="flex justify-between items-end">
-                    <div className="text-base font-system font-bold text-text/60">₹{deal.total_value_inr.toLocaleString()}</div>
-                    <div className="text-[10px] text-text/30 font-bold uppercase tracking-widest">{deal.created_at}</div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-
-            {deals.filter(d => d.status === status).length === 0 && (
-              <div className="border-2 border-dashed border-border/50 rounded-[32px] py-16 flex items-center justify-center bg-void/30">
-                <span className="font-sans text-[10px] text-text/10 font-black uppercase tracking-[0.4em] italic">Open Slot</span>
+      <main className="flex-1 mt-24 relative z-10 flex flex-col">
+        <AnimatePresence mode="wait">
+          {view === "hub" && (
+            <motion.section 
+              key="hub"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="flex-1 flex flex-col"
+            >
+              {/* Welcome Banner */}
+              <div className="mb-16">
+                 <span className="font-system text-[11px] font-black text-signal tracking-[0.6em] uppercase block mb-4">Identity_Verified</span>
+                 <h1 className="text-6xl font-display tracking-tighter leading-none">Welcome back, <span className="text-signal italic">{user?.firstName || 'Chief'}</span></h1>
               </div>
-            )}
-          </div>
-        ))}
-      </div>
 
+              {/* Action Hub - Playful 3D Strategy Cards */}
+              <div className="mb-20">
+                <MultimodalIngestor onSelect={(strategy) => {
+                  if (strategy === 'architect') setView("onboarding");
+                  else setView("blueprint");
+                }} />
+              </div>
+
+              {/* Kanban Deal Stream */}
+              <div className="flex-1 bg-surface/40 backdrop-blur-3xl border border-white/5 rounded-[60px] p-16 shadow-2xl relative overflow-hidden beveled-edge">
+                 <div className="flex justify-between items-end mb-12 border-b border-white/5 pb-8">
+                    <div className="space-y-2">
+                       <span className="font-system text-[10px] text-text/20 uppercase tracking-[0.5em]">Active_Repository</span>
+                       <h3 className="text-3xl font-display italic tracking-tighter">Deal_Memory</h3>
+                    </div>
+                    <button className="px-8 py-3 bg-white/5 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-[0.4em] hover:bg-white/10 transition-all">Export_Report</button>
+                 </div>
+
+                 {/* Kanban Grid */}
+                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    {["DRAFT", "SENT", "VIEWED", "SIGNED"].map(col => (
+                      <div key={col} className="space-y-6">
+                         <div className="flex justify-between items-center opacity-30 px-2">
+                            <span className="font-system text-[10px] font-black tracking-widest">{col} //</span>
+                            <span className="text-[9px]">00</span>
+                         </div>
+                         <div className="h-64 border-2 border-dashed border-white/5 rounded-[40px] flex items-center justify-center bg-void/20">
+                            <span className="font-system text-[8px] text-white/5 uppercase tracking-[0.6em] italic">Open_Node</span>
+                         </div>
+                      </div>
+                    ))}
+                 </div>
+              </div>
+            </motion.section>
+          )}
+
+          {view === "onboarding" && (
+            <motion.section 
+              key="onboarding"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.05 }}
+              className="flex-1 flex flex-col items-center justify-center relative"
+            >
+               <div className="absolute top-0 left-0 w-[400px] h-[500px] opacity-40 pointer-events-none">
+                  <CharacterScene scene="https://prod.spline.design/E0G8Z0u0u0U0u0U0/scene.splinecode" className="h-full w-full scale-150" />
+               </div>
+               
+               <div className="z-10 w-full max-w-2xl">
+                 <IdentityWizard onComplete={() => router.push('/cockpit')} />
+               </div>
+
+               <button 
+                 onClick={() => setView("hub")}
+                 className="mt-12 text-[10px] font-black text-text/30 uppercase tracking-[0.4em] hover:text-signal transition-all"
+               >
+                 [Abort_Initialization]
+               </button>
+            </motion.section>
+          )}
+
+          {view === "blueprint" && (
+            <motion.section 
+              key="blueprint"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="flex-1 flex flex-col items-center justify-center gap-12"
+            >
+               <div className="text-center space-y-4">
+                  <span className="font-system text-[11px] text-signal font-black uppercase tracking-[0.8em]">DNA_Replication_Active</span>
+                  <h2 className="text-7xl font-display italic tracking-tighter">Clone_Structure</h2>
+               </div>
+               <div className="w-full max-w-3xl glass-morphism rounded-[60px] p-24 text-center border-white/5 beveled-edge shadow-2xl relative overflow-hidden group">
+                  <div className="scan-line" />
+                  <div className="mb-12 w-32 h-32 bg-white/5 rounded-[40px] flex items-center justify-center mx-auto border border-white/10 group-hover:scale-110 transition-all duration-700">
+                     <svg className="w-16 h-16 text-signal" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg>
+                  </div>
+                  <p className="text-white/40 text-xl font-sans mb-12">Drop physical contract or PDF here to initialize replication.</p>
+                  <button onClick={() => router.push('/cockpit')} className="px-16 py-7 bg-signal text-void font-sans font-black text-xs uppercase tracking-[0.4em] rounded-3xl shadow-premium hover:scale-105 active:scale-95 transition-all">Confirm_Upload</button>
+               </div>
+               <button onClick={() => setView("hub")} className="text-[10px] font-black text-text/30 uppercase tracking-[0.4em] hover:text-signal transition-all">Back_to_Dashboard</button>
+            </motion.section>
+          )}
+        </AnimatePresence>
+      </main>
+
+      {/* Dashboard Footer Stats */}
+      <footer className="fixed bottom-0 left-0 w-full h-16 border-t border-white/5 flex items-center justify-between px-16 bg-surface/80 backdrop-blur-xl z-[100]">
+        <div className="flex gap-12 font-system text-[9px] font-black text-text/20 uppercase tracking-[0.4em]">
+           <span>TVL: ₹4,50,000.00</span>
+           <span>Efficiency: 98.2%</span>
+        </div>
+        <div className="text-[9px] font-system font-black text-signal/40 uppercase tracking-[0.6em]">
+           Node_Location: Ahmedabad_Cluster_Alpha
+        </div>
+      </footer>
     </div>
   );
 }

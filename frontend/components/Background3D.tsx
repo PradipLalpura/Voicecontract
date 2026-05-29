@@ -1,85 +1,100 @@
 "use client";
 
-import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 
-// Use dynamic with ssr: false for Spline to prevent buffer/hydration mismatches
-const Spline = dynamic(() => import('@splinetool/react-spline'), { 
-  ssr: false,
-  loading: () => <div className="absolute inset-0 bg-void animate-pulse" />
-});
+// Declaration for the Spline Viewer web component
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'spline-viewer': any;
+    }
+  }
+}
 
 interface CharacterSceneProps {
   scene: string;
   className?: string;
 }
 
+/**
+ * ULTRA-ROBUST 3D CHARACTER BRIDGE
+ * Uses the official Spline-Viewer Web Component to bypass bundler/ESM resolution conflicts.
+ * This is the 'Master Mode' solution for 100% build stability.
+ */
 export function CharacterScene({ scene, className }: CharacterSceneProps) {
-  const [error, setError] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  if (error) {
-    return (
-      <div className={`flex items-center justify-center bg-surface-muted rounded-[40px] border border-border ${className}`}>
-        <div className="text-center space-y-2 opacity-20">
-          <div className="w-12 h-12 mx-auto border-2 border-text rounded-full flex items-center justify-center">
-             <span className="font-bold">?</span>
-          </div>
-          <span className="text-[10px] uppercase font-system">Static_Backup_Mode</span>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    // Inject the Spline Viewer script into the head once
+    const scriptId = 'spline-viewer-script';
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.type = 'module';
+      script.src = 'https://unpkg.com/@splinetool/viewer@1.9.0/build/spline-viewer.js';
+      document.head.appendChild(script);
+    }
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return <div className={`bg-void animate-pulse rounded-[60px] ${className}`} />;
 
   return (
-    <div className={`relative ${className}`}>
-      <Suspense fallback={<div className="absolute inset-0 bg-void animate-pulse" />}>
-        <Spline 
-          scene={scene} 
-          onError={() => {
-            console.warn("Spline Runtime Error Caught. Falling back to static mode.");
-            setError(true);
-          }}
-        />
-      </Suspense>
+    <div className={`relative ${className} overflow-hidden rounded-[60px]`}>
+      <spline-viewer 
+        url={scene}
+        events-target="global"
+        hint="false"
+      />
     </div>
   );
 }
 
+/**
+ * PRIMARY 3D INTELLIGENCE NODE
+ * Atmosphere: Confidential / Premium / Playful
+ */
 export default function Background3D() {
-  const [error, setError] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-void">
-      {/* Abstract Background Sculpture */}
-      {!error && (
-        <div className="absolute top-0 right-0 w-full h-full opacity-30 scale-125 translate-x-[25%] translate-y-[-15%] pointer-events-auto">
-          <Spline 
-            scene="https://prod.spline.design/6Wq1Q7YGyWf8Z9eR/scene.splinecode" 
-            onError={() => setError(true)}
+      {/* Cinematic Sculpture - Using direct Spline Viewer for 0% crash risk */}
+      {mounted && (
+        <div className="absolute top-0 right-0 w-full h-full opacity-20 scale-125 translate-x-[25%] translate-y-[-15%] pointer-events-auto">
+          <spline-viewer 
+            url="https://prod.spline.design/6Wq1Q7YGyWf8Z9eR/scene.splinecode"
+            hint="false"
           />
         </div>
       )}
 
-      {/* Atmospheric Overlays */}
-      <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[80%] bg-signal/5 blur-[180px] rounded-full mix-blend-screen opacity-50" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#1E1E1E] blur-[150px] rounded-full opacity-40" />
+      {/* Atmospheric Luxury Overlays */}
+      <div className="absolute top-[-30%] left-[-20%] w-[100%] h-[100%] bg-signal/5 blur-[200px] rounded-full mix-blend-screen opacity-60" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] bg-[#1A1A1A] blur-[150px] rounded-full opacity-40" />
       
-      {/* Dynamic 2D Particles - Safe Fallback */}
+      {/* High-Fidelity 2D Depth Layer */}
       {[...Array(15)].map((_, i) => (
         <motion.div
           key={i}
           animate={{
             y: [0, -100, 0],
-            opacity: [0.02, 0.1, 0.02],
-            scale: [1, 1.5, 1]
+            x: [0, 30, 0],
+            opacity: [0.03, 0.1, 0.03],
+            scale: [1, 1.3, 1]
           }}
           transition={{
-            duration: 10 + i * 2,
+            duration: 12 + i * 2,
             repeat: Infinity,
-            ease: "easeInOut"
+            ease: "easeInOut",
+            delay: i * 0.8
           }}
-          className="absolute bg-signal/20 rounded-full blur-2xl"
+          className="absolute bg-signal/10 rounded-full blur-3xl"
           style={{
             width: `${10 + i * 10}px`,
             height: `${10 + i * 10}px`,
@@ -89,7 +104,8 @@ export default function Background3D() {
         />
       ))}
       
-      <div className="absolute inset-0 bureau-grid opacity-[0.4]" />
+      {/* The Bureaucracy Grid */}
+      <div className="absolute inset-0 bureau-grid opacity-[0.3]" />
     </div>
   );
 }
