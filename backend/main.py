@@ -20,10 +20,12 @@ from starlette.websockets import WebSocketState
 
 try:
     from backend.agents.context_agent import Commitment, ContextAgent, ContextAgentError
+    from backend.agents.strategist_agent import StrategistAgent, StrategistAgentError
     from backend.agents.whisper_agent import TranscriptionError, WhisperAgent
     from backend.routers.sessions import create_sessions_router
 except ModuleNotFoundError:
     from agents.context_agent import Commitment, ContextAgent, ContextAgentError
+    from agents.strategist_agent import StrategistAgent, StrategistAgentError
     from agents.whisper_agent import TranscriptionError, WhisperAgent
     from routers.sessions import create_sessions_router
 
@@ -251,6 +253,7 @@ class SessionRegistry:
 registry = SessionRegistry()
 whisper_agent: WhisperAgent | None = None
 context_agent: ContextAgent | None = None
+strategist_agent: StrategistAgent | None = None
 
 app = FastAPI(title="VoiceContract Pro Capture Engine", version="2.0.0")
 app.add_middleware(
@@ -265,12 +268,13 @@ app.include_router(create_sessions_router(registry))
 
 @app.on_event("startup")
 async def startup() -> None:
-    global whisper_agent, context_agent
+    global whisper_agent, context_agent, strategist_agent
     try:
         whisper_agent = WhisperAgent()
         context_agent = ContextAgent()
-        logger.info("linguistic_agents_ready whisper_model=%s context_model=%s", whisper_agent.model, context_agent.model)
-    except (TranscriptionError, ContextAgentError) as exc:
+        strategist_agent = StrategistAgent()
+        logger.info("linguistic_agents_ready whisper_model=%s context_model=%s strategist_model=%s", whisper_agent.model, context_agent.model, strategist_agent.model)
+    except (TranscriptionError, ContextAgentError, StrategistAgentError) as exc:
         logger.error("linguistic_agents_unavailable error=%s", exc)
 
 
@@ -281,6 +285,7 @@ async def healthz() -> dict[str, Any]:
         "agents": {
             "whisper": whisper_agent is not None,
             "context": context_agent is not None,
+            "strategist": strategist_agent is not None,
         },
         "capture": await registry.snapshot(),
     }
@@ -474,7 +479,7 @@ async def _process_audio_chunk(
 
 
 async def _maybe_schedule_context_analysis(session: CaptureSession, transcript_index: int) -> None:
-    if context_agent is None:
+    if context_agent is None and strategist_agent is None:
         return
     now = time.monotonic()
     if now - session.last_context_run < CONTEXT_MIN_INTERVAL_SECONDS:
@@ -496,11 +501,42 @@ async def _maybe_schedule_context_analysis(session: CaptureSession, transcript_i
     if len(session.active_ai_tasks) >= MAX_AI_TASKS_PER_SESSION:
         return
 
-    task = asyncio.create_task(
-        _run_context_analysis(session=session, recent_text=recent_text, known_commitments=known),
-        name=f"context-{session.session_id}",
-    )
-    session.remember_task(task)
+    if context_agent is not None:
+        task = asyncio.create_task(
+            _run_context_analysis(session=session, recent_text=recent_text, known_commitments=known),
+            name=f"context-{session.session_id}",
+        )
+        session.remember_task(task)
+
+    if strategist_agent is not None:
+        task2 = asyncio.create_task(
+            _run_strategist_analysis(session=session, recent_text=recent_text),
+            name=f"strategist-{session.session_id}",
+        )
+        session.remember_task(task2)
+
+
+async def _run_strategist_analysis(*, session: CaptureSession, recent_text: str) -> None:
+    if strategist_agent is None:
+        return
+    try:
+        pulses = await strategist_agent.analyze_psychology(recent_transcript=recent_text)
+        for pulse in pulses:
+            await session.emit(
+                {
+                    "type": "pulse",
+                    "session_id": session.session_id,
+                    "pulse": {
+                        "kind": pulse.kind,
+                        "content": pulse.content,
+                        "urgency": pulse.urgency,
+                        "created_at": time.time(),
+                        "source": "STRATEGIST"
+                    },
+                }
+            )
+    except Exception as exc:
+        logger.warning("strategist_analysis_failed session=%s error=%s", session.session_id, exc)
 
 
 async def _run_context_analysis(
@@ -540,6 +576,7 @@ async def _run_context_analysis(
                     "term": _commitment_payload(commitment),
                     "summary": analysis.summary,
                     "created_at": time.time(),
+                    "source": "SENTINEL"
                 },
             }
         )

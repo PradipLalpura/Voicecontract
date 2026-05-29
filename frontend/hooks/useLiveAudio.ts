@@ -31,7 +31,9 @@ type LiveAudioEvent =
   | { type: "dropped"; source: CaptureSource; reason: string }
   | { type: "backpressure"; queue?: number }
   | { type: "error"; message: string }
-  | { type: "stopped" };
+  | { type: "stopped" }
+  | { type: "transcript"; text: string; full_transcript: string }
+  | { type: "pulse"; kind: string; content: string; pillar?: string; value?: string; urgency?: string; source: string };
 
 type WorkletMessage =
   | {
@@ -330,6 +332,19 @@ export function useLiveAudio(options: LiveAudioOptions = {}) {
           } else if (payload.type === "error") {
             const serverMessage = payload.detail || payload.code || "Capture server error";
             emit({ type: "error", message: String(serverMessage) });
+          } else if (payload.type === "transcript") {
+            emit({ type: "transcript", text: String(payload.text), full_transcript: String(payload.text) });
+          } else if (payload.type === "pulse" && payload.pulse) {
+            const p = payload.pulse as any;
+            emit({ 
+              type: "pulse", 
+              kind: p.kind, 
+              content: p.content || p.summary || "", 
+              pillar: p.term?.type, 
+              value: p.term?.value, 
+              urgency: p.urgency || "low", 
+              source: p.source || "SENTINEL" 
+            });
           }
         };
 
