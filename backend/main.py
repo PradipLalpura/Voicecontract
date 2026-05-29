@@ -23,11 +23,13 @@ try:
     from backend.agents.strategist_agent import StrategistAgent, StrategistAgentError
     from backend.agents.whisper_agent import TranscriptionError, WhisperAgent
     from backend.routers.sessions import create_sessions_router
+    from backend.routers.dispatch import router as dispatch_router
 except ModuleNotFoundError:
     from agents.context_agent import Commitment, ContextAgent, ContextAgentError
     from agents.strategist_agent import StrategistAgent, StrategistAgentError
     from agents.whisper_agent import TranscriptionError, WhisperAgent
     from routers.sessions import create_sessions_router
+    from routers.dispatch import router as dispatch_router
 
 
 logger = logging.getLogger("voicecontract.capture")
@@ -264,6 +266,7 @@ app.add_middleware(
     allow_headers=["authorization", "content-type", "x-capture-timestamp", "x-capture-signature"],
 )
 app.include_router(create_sessions_router(registry))
+app.include_router(dispatch_router)
 
 
 @app.on_event("startup")

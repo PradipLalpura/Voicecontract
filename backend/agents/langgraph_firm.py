@@ -33,6 +33,7 @@ class FirmState(TypedDict, total=False):
     is_approved: bool
     invoice_data: Dict[str, Any]
     po_data: Dict[str, Any]
+    deal_audit: Dict[str, Any]
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,6 +44,7 @@ class LegalDocumentPackage:
     blueprint: dict[str, Any]
     red_team_feedback: list[str]
     revision_count: int
+    deal_audit: dict[str, Any]
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -67,6 +69,24 @@ Output ONLY valid JSON matching this blueprint:
     "ip_ownership": "MISSING_DEFAULT_REQUIRED",
     "termination": "MISSING_DEFAULT_REQUIRED",
     "liability": "MISSING_DEFAULT_REQUIRED"
+}
+""".strip()
+
+DEAL_SURGEON_SYSTEM_PROMPT = """
+You are "The Deal Surgeon," a world-class negotiation analyst. 
+Your job is to perform a post-mortem on a business meeting transcript to help the Service Provider win more deals and improve their negotiation skills.
+
+YOUR DIRECTIVE:
+1. DRAWBACKS: Identify where the Provider sounded uncertain, conceded too much, or missed opportunities.
+2. CONVINCING STRATEGY: Identify the client's "True Pain Point" and generate 3 talking points for a follow-up.
+3. TONE ANALYSIS: Assess the power dynamics and client sentiment.
+
+Output ONLY valid JSON:
+{
+    "drawbacks": ["Specific point 1", "Specific point 2"],
+    "pain_points": ["What the client actually cares about"],
+    "follow_up_strategy": ["Talking point 1", "Talking point 2", "Talking point 3"],
+    "overall_sentiment": "Positive/Neutral/Tense"
 }
 """.strip()
 
@@ -242,6 +262,22 @@ async def auditor_node(state: FirmState) -> FirmState:
     return {"invoice_data": invoice, "po_data": po}
 
 
+async def deal_surgeon_node(state: FirmState) -> FirmState:
+    llm = _github_gpt4o()
+    prompt = {
+        "transcript": state["transcript"],
+        "final_blueprint": state.get("final_blueprint", {}),
+    }
+    response = await llm.ainvoke(
+        [
+            SystemMessage(content=DEAL_SURGEON_SYSTEM_PROMPT),
+            HumanMessage(content=json.dumps(prompt, ensure_ascii=False, separators=(",", ":"))),
+        ]
+    )
+    audit = _parse_json_object(str(response.content), required_keys={"drawbacks", "pain_points", "follow_up_strategy"})
+    return {"deal_audit": audit}
+
+
 def _red_team_route(state: FirmState) -> str:
     if state.get("is_approved", False):
         return "auditor"
@@ -256,11 +292,14 @@ def build_legal_firm_graph():
     graph.add_node("drafter", drafter_node)
     graph.add_node("red_team", red_team_node)
     graph.add_node("auditor", auditor_node)
+    graph.add_node("deal_surgeon", deal_surgeon_node)
+    
     graph.set_entry_point("strategist")
     graph.add_edge("strategist", "drafter")
     graph.add_edge("drafter", "red_team")
     graph.add_conditional_edges("red_team", _red_team_route, {"drafter": "drafter", "auditor": "auditor"})
-    graph.add_edge("auditor", END)
+    graph.add_edge("auditor", "deal_surgeon")
+    graph.add_edge("deal_surgeon", END)
     return graph.compile()
 
 
@@ -288,6 +327,7 @@ async def execute_legal_firm(transcript: str, identity: dict[str, Any]) -> Legal
             "is_approved": False,
             "invoice_data": {},
             "po_data": {},
+            "deal_audit": {},
         }
     )
     return LegalDocumentPackage(
@@ -297,6 +337,7 @@ async def execute_legal_firm(transcript: str, identity: dict[str, Any]) -> Legal
         blueprint=dict(final_state.get("final_blueprint", {})),
         red_team_feedback=list(final_state.get("red_team_feedback", [])),
         revision_count=int(final_state.get("revision_count", 0)),
+        deal_audit=dict(final_state.get("deal_audit", {})),
     )
 
 
