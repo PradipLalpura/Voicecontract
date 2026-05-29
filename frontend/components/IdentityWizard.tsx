@@ -8,7 +8,7 @@ interface IdentityData {
   logo: string | null;
 }
 
-export default function IdentityWizard() {
+export default function IdentityWizard({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState(1);
   const [data, setData] = useState<IdentityData>({
     company_name: '',
@@ -124,7 +124,7 @@ export default function IdentityWizard() {
           </button>
         )}
         <button 
-          onClick={step === 3 ? () => console.log('Finalize') : next}
+          onClick={step === 3 ? onComplete : next}
           className="flex-1 px-8 py-4 bg-signal text-void font-system text-xs font-bold uppercase tracking-widest transition-all hover:brightness-110 active:scale-[0.98]"
         >
           {step === 3 ? 'Establish Identity' : 'Proceed to Validation'}

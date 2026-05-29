@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
+import SuccessHandshake from "@/components/animations/SuccessHandshake";
+
 export default function SignaturePortal() {
   const { session_id } = useParams();
   const [loading, setLoading] = useState(true);
@@ -14,8 +16,7 @@ export default function SignaturePortal() {
   const [isDrawing, setIsDragging] = useState(false);
 
   useEffect(() => {
-    // Simulate fetching document data from the session_id
-    // In production, this would be a public GET request with a secure hash
+    // Simulate fetching document data
     setTimeout(() => {
       setIdentity({
         provider: "ANTARIK SYSTEMS",
@@ -29,41 +30,23 @@ export default function SignaturePortal() {
     }, 1500);
   }, [session_id]);
 
-  const startDrawing = (e: any) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    
-    ctx.beginPath();
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX || e.touches[0].clientX) - rect.left;
-    const y = (e.clientY || e.touches[0].clientY) - rect.top;
-    ctx.moveTo(x, y);
-    setIsDragging(true);
+  const triggerDownload = () => {
+    const blob = new Blob([documents?.msa], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `VoiceContract_${session_id}.txt`; // In prod, this is a .pdf
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    a.remove();
   };
-
-  const draw = (e: any) => {
-    if (!isDrawing) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX || e.touches[0].clientX) - rect.left;
-    const y = (e.clientY || e.touches[0].clientY) - rect.top;
-    ctx.lineTo(x, y);
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-  };
-
-  const stopDrawing = () => setIsDragging(false);
 
   const handleSign = () => {
     setSigned(true);
-    // Trigger dispatch confirmation animation
+    triggerDownload();
+    // Simulate WhatsApp/Email dispatch
+    console.log("Omnichannel Dispatch Triggered via Twilio/SendGrid");
   };
 
   if (loading) {
