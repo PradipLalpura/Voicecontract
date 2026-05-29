@@ -5,7 +5,12 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { 
+  SignInButton, 
+  SignedIn, 
+  SignedOut, 
+  UserButton 
+} from "@clerk/nextjs";
 import Background3D, { CharacterScene } from "@/components/Background3D";
 
 gsap.registerPlugin(useGSAP);
@@ -61,7 +66,7 @@ export default function LandingPage() {
               >
                 Go_To_Dashboard
               </button>
-              <UserButton afterSignOutUrl="/"/>
+              <UserButton />
             </SignedIn>
           </div>
         </div>

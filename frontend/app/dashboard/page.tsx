@@ -40,7 +40,7 @@ export default function DashboardHub() {
               <div className="flex items-center gap-2">Node: {user?.id?.slice(0,8)}</div>
            </div>
            <div className="w-px h-6 bg-white/10" />
-           <UserButton afterSignOutUrl="/" />
+           <UserButton />
         </div>
       </header>
 
