@@ -9,8 +9,7 @@ import { useRouter } from "next/navigation";
 import IdentityWizard from "@/components/IdentityWizard";
 import MultimodalIngestor from "@/components/MultimodalIngestor";
 
-const Background3D = lazy(() => import("@/components/Background3D"));
-const CharacterScene = lazy(() => import("@/components/Background3D").then(mod => ({ default: mod.CharacterScene })));
+import Background3D, { CharacterScene } from "@/components/Background3D";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 

@@ -1,0 +1,41 @@
+- dialog "Unhandled Runtime Error" [ref=e34]:
+  - generic [ref=e35]:
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - navigation [ref=e38]:
+          - button "previous" [disabled] [ref=e39]:
+            - img "previous" [ref=e40]
+          - button "next" [disabled] [ref=e42]:
+            - img "next" [ref=e43]
+          - generic [ref=e45]: 1 of 1 error
+          - generic [ref=e46]:
+            - text: Next.js (14.2.3) is outdated
+            - link "(learn more)" [ref=e48] [cursor=pointer]:
+              - /url: https://nextjs.org/docs/messages/version-staleness
+        - button "Close" [ref=e49] [cursor=pointer]:
+          - img [ref=e51]
+      - heading "Unhandled Runtime Error" [level=1] [ref=e54]
+      - paragraph [ref=e55]: "Error: Data read, but end of buffer not reached"
+    - generic [ref=e56]:
+      - heading "Call Stack" [level=2] [ref=e57]
+      - generic [ref=e58]:
+        - heading "h0" [level=3] [ref=e59]
+        - generic [ref=e61]: node_modules\@splinetool\runtime\build\runtime.js (3139:255676)
+      - generic [ref=e62]:
+        - heading "tu.unpack" [level=3] [ref=e63]
+        - generic [ref=e65]: node_modules\@splinetool\runtime\build\runtime.js (3139:254822)
+      - generic [ref=e66]:
+        - heading "Object.t [as deserialize]" [level=3] [ref=e67]
+        - generic [ref=e69]: node_modules\@splinetool\runtime\build\runtime.js (3139:276106)
+      - generic [ref=e70]:
+        - heading "HV" [level=3] [ref=e71]
+        - generic [ref=e73]: node_modules\@splinetool\runtime\build\runtime.js (8173:3708)
+      - generic [ref=e74]:
+        - heading "iU.start" [level=3] [ref=e75]
+        - generic [ref=e77]: node_modules\@splinetool\runtime\build\runtime.js (8175:28381)
+      - generic [ref=e78]:
+        - heading "iU.load" [level=3] [ref=e79]
+        - generic [ref=e81]: node_modules\@splinetool\runtime\build\runtime.js (8175:28264)
+      - generic [ref=e82]:
+        - heading "async t" [level=3] [ref=e83]
+        - generic [ref=e85]: node_modules\@splinetool\react-spline\dist\react-spline.js (75:11)
