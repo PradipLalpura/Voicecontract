@@ -1,54 +1,42 @@
 "use client";
 
-import { motion } from "framer-motion";
+import Spline from '@splinetool/react-spline';
+import { motion } from 'framer-motion';
 
 export default function Background3D() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      {/* Primary Intelligence Node */}
-      <motion.div 
-        animate={{ 
-          rotateY: [0, 360],
-          rotateX: [0, 180, 0],
-          scale: [1, 1.1, 1]
-        }}
-        transition={{ 
-          duration: 20, 
-          repeat: Infinity, 
-          ease: "linear" 
-        }}
-        className="absolute top-[20%] right-[10%] w-[600px] h-[600px]"
-        style={{ perspective: "1000px", transformStyle: "preserve-3d" }}
-      >
-        <div className="absolute inset-0 border border-signal/20 rounded-full blur-[1px]" />
-        <div className="absolute inset-10 border-[0.5px] border-signal/10 rounded-full rotate-45" />
-        <div className="absolute inset-20 border-[0.5px] border-signal/5 rounded-full -rotate-45" />
-        
-        {/* Glowing Core */}
-        <div className="absolute inset-[40%] bg-signal/10 rounded-full blur-[100px] animate-pulse" />
-      </motion.div>
+    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+      {/* Cinematic Spline Node - Interactive Abstract Data/Legal Sculpture */}
+      <div className="absolute top-0 right-0 w-full h-full opacity-60 scale-75 md:scale-100 translate-x-[15%] md:translate-x-[20%] translate-y-[-10%] md:translate-y-[-5%] pointer-events-auto">
+        <Spline scene="https://prod.spline.design/6Wq1Q7YGyWf8Z9eR/scene.splinecode" />
+      </div>
 
-      {/* Ambient Floaters */}
-      {[...Array(5)].map((_, i) => (
+      {/* Atmospheric Blur Overlays */}
+      <div className="absolute top-0 left-0 w-[40%] h-[40%] bg-signal/10 blur-[120px] rounded-full opacity-30" />
+      <div className="absolute bottom-0 right-0 w-[50%] h-[50%] bg-signal/5 blur-[150px] rounded-full opacity-20" />
+      
+      {/* Floating Particles for Playfulness */}
+      {[...Array(8)].map((_, i) => (
         <motion.div
           key={i}
           animate={{
-            y: [0, -100, 0],
-            x: [0, 50, 0],
-            opacity: [0.1, 0.3, 0.1]
+            y: [0, -40, 0],
+            x: [0, 20, 0],
+            rotate: [0, 180, 360],
+            opacity: [0.1, 0.4, 0.1]
           }}
           transition={{
-            duration: 10 + i * 2,
+            duration: 12 + i * 2,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: i * 1
+            delay: i * 1.5
           }}
-          className="absolute bg-signal/20 rounded-full blur-xl"
+          className="absolute border border-signal/20 rounded-sm"
           style={{
-            width: `${20 + i * 10}px`,
-            height: `${20 + i * 10}px`,
-            top: `${20 + i * 15}%`,
-            left: `${10 + i * 20}%`,
+            width: `${10 + i * 4}px`,
+            height: `${10 + i * 4}px`,
+            top: `${15 + i * 10}%`,
+            left: `${10 + i * 12}%`,
           }}
         />
       ))}
