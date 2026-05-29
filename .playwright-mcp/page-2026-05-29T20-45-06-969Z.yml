@@ -1,0 +1,25 @@
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - navigation [ref=e4]:
+        - generic [ref=e5] [cursor=pointer]:
+          - generic [ref=e8]: Voice
+          - generic [ref=e9]: Contract
+        - generic [ref=e10]:
+          - button "Protocol" [ref=e11] [cursor=pointer]
+          - button "Archive" [ref=e12] [cursor=pointer]
+          - button "Launch Engine" [ref=e13] [cursor=pointer]
+      - generic [ref=e14]:
+        - generic [ref=e15]: Autonomous Legal Genesis
+        - heading "The meeting ends. The paperwork is done." [level=1] [ref=e19]:
+          - text: The meeting ends.
+          - text: The paperwork is done.
+        - paragraph [ref=e20]: A high-stakes intelligence layer that captures, reasons, and executes legally binding agreements in the duration of a single conversation.
+        - generic [ref=e21]:
+          - button "Initialize Identity" [active] [ref=e22] [cursor=pointer]: Initialize Identity
+          - button "Audit Protocol" [ref=e24] [cursor=pointer]
+      - generic [ref=e25]:
+        - generic [ref=e26]: "X: 23.0225° N"
+        - generic [ref=e27]: "Y: 72.5714° E"
+      - generic [ref=e28]: "Signal_Status: Connected // Node_01"
+  - alert [ref=e29]

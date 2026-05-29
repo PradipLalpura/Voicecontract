@@ -66,7 +66,7 @@ export default function IdentityWizard({ onComplete }: { onComplete: () => void 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.5, ease: "expo.out" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
             className="space-y-10"
           >
             <div className="space-y-4 group">
@@ -104,7 +104,7 @@ export default function IdentityWizard({ onComplete }: { onComplete: () => void 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.5, ease: "expo.out" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
             className="space-y-10"
           >
             <div className="space-y-4 group">

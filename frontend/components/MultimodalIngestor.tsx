@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function MultimodalIngestor() {
+export default function MultimodalIngestor({ onSelect }: { onSelect: (strategy: 'clone' | 'architect') => void }) {
   const [isDragging, setIsDragging] = useState(false);
 
   return (
@@ -12,7 +12,8 @@ export default function MultimodalIngestor() {
         `}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
-        onDrop={(e) => { e.preventDefault(); setIsDragging(false); }}
+        onDrop={(e) => { e.preventDefault(); setIsDragging(false); onSelect('clone'); }}
+        onClick={() => onSelect('clone')}
       >
         <div className="mb-8 w-24 h-24 bg-void rounded-[28px] flex items-center justify-center border border-border shadow-beveled group-hover:scale-110 transition-transform">
           <svg className="w-10 h-10 text-signal" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -45,7 +46,10 @@ export default function MultimodalIngestor() {
           </p>
         </div>
 
-        <button className="w-full mt-12 px-8 py-5 bg-text text-void font-sans font-bold text-sm uppercase tracking-widest rounded-2xl hover:bg-signal transition-all shadow-premium group-hover:scale-[1.02] active:scale-[0.98]">
+        <button 
+          onClick={(e) => { e.stopPropagation(); onSelect('architect'); }}
+          className="w-full mt-12 px-8 py-5 bg-text text-void font-sans font-bold text-sm uppercase tracking-widest rounded-2xl hover:bg-signal transition-all shadow-premium group-hover:scale-[1.02] active:scale-[0.98]"
+        >
           Initialize Architect
         </button>
       </div>

@@ -1,0 +1,40 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - navigation [ref=e4]:
+        - generic [ref=e5] [cursor=pointer]:
+          - generic [ref=e8]: Voice
+          - generic [ref=e9]: Contract
+        - generic [ref=e10]:
+          - button "Protocol" [ref=e11] [cursor=pointer]
+          - button "Archive" [ref=e12] [cursor=pointer]
+          - button "Launch Engine" [ref=e13] [cursor=pointer]
+      - generic [ref=e31]:
+        - generic [ref=e34]:
+          - generic [ref=e35]:
+            - text: Genesis Sequence
+            - heading "Initialize Node" [level=2] [ref=e36]
+          - generic [ref=e37]:
+            - generic [ref=e38]: Protocol
+            - generic [ref=e39]: 03/03
+        - generic [ref=e40]:
+          - generic [ref=e41]:
+            - generic [ref=e42]: Corporate Designation
+            - textbox "e.g. ANTARIK SYSTEMS LTD" [ref=e43]: TEST CORP
+          - generic [ref=e44]:
+            - generic [ref=e45]: Tax Identification (GST)
+            - textbox "24AAAAA0000A1Z5" [ref=e46]
+        - generic [ref=e47]:
+          - button "Previous" [ref=e63] [cursor=pointer]
+          - button "Execute Initialization" [disabled] [ref=e64]
+        - generic [ref=e51]: "System_State: Stable // Encrypted_Path"
+      - generic [ref=e25]:
+        - generic [ref=e26]: "X: 23.0225° N"
+        - generic [ref=e27]: "Y: 72.5714° E"
+      - generic [ref=e28]: "Signal_Status: Connected // Node_01"
+  - alert [ref=e29]
+  - generic [ref=e55] [cursor=pointer]:
+    - img [ref=e56]
+    - generic [ref=e58]: 1 error
+    - button "Hide Errors" [ref=e59]:
+      - img [ref=e60]

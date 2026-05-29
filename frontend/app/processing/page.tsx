@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import gsap from "gsap";
@@ -19,7 +19,7 @@ const AGENT_LOGS = [
   { agent: "MASTER_CODEX", msg: "Generating SHA-256 Cryptographic Stamp..." },
 ];
 
-export default function ProcessingPage() {
+function ProcessingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session");
@@ -56,10 +56,7 @@ export default function ProcessingPage() {
 
   return (
     <div className="min-h-screen bg-void text-text font-sans flex flex-col items-center justify-center p-10 bureau-grid-light">
-      
       <div className="w-full max-w-4xl space-y-12">
-        
-        {/* Progress Header */}
         <div className="flex justify-between items-end border-b border-border pb-6">
           <div>
             <span className="font-sans text-[11px] font-black text-signal tracking-[0.4em] uppercase">Processing Core</span>
@@ -71,7 +68,6 @@ export default function ProcessingPage() {
           </div>
         </div>
 
-        {/* The Theatre of Work Terminal */}
         <div className="h-[450px] bg-surface border border-border rounded-[40px] shadow-premium p-10 font-system text-xs overflow-hidden flex flex-col justify-end relative">
            <div className="absolute top-0 left-0 w-full h-1 bg-signal/10 overflow-hidden">
               <motion.div 
@@ -108,19 +104,27 @@ export default function ProcessingPage() {
            </div>
         </div>
 
-        {/* Global Progress Bar */}
         <div className="w-full h-1 bg-void rounded-full overflow-hidden shadow-beveled">
            <div ref={barRef} className="h-full bg-signal shadow-[0_0_20px_oklch(70%_0.18_195)]" />
         </div>
 
-        {/* Footer Meta */}
         <div className="flex justify-between text-[10px] font-bold text-text/20 uppercase tracking-[0.3em]">
            <span>Node: Intelligence_Cluster_Alpha</span>
            <span>Security: Transient_Memory_Encryption</span>
         </div>
-
       </div>
-
     </div>
+  );
+}
+
+export default function ProcessingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-void flex items-center justify-center text-signal font-system text-[10px] uppercase tracking-[0.3em]">
+        Initializing Processing Core...
+      </div>
+    }>
+      <ProcessingContent />
+    </Suspense>
   );
 }
