@@ -1,122 +1,55 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-
-  --radius-sm: 8px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  
-  /* Antarik Brand Colors - Dark Theme */
-  --color-brand-cyan: #00C2CC;
-  --color-brand-gold: #E8C547;
-  --color-brand-violet: #7B5CE5;
-  --color-brand-void: #080E1A;
-  --color-brand-surface: #0F1825;
-  --color-brand-layer: #162038;
-  --color-brand-starlight: #EDF2FF;
-  --color-brand-dusk: #7A8BA6;
-
-  /* Typography */
-  --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
-  --font-heading: 'Editorial New', 'Times New Roman', serif;
-  --font-mono: 'JetBrains Mono', monospace;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  /* Defaulting to Dark Theme as per Antarik DNA for premium digital experiences */
-  --background: #080E1A; /* Void */
-  --foreground: #EDF2FF; /* Starlight */
-  --card: #0F1825; /* Surface */
-  --card-foreground: #EDF2FF; /* Starlight */
-  --popover: #0F1825; /* Surface */
-  --popover-foreground: #EDF2FF; /* Starlight */
-  
-  --primary: #00C2CC; /* Signal Cyan */
-  --primary-foreground: #080E1A; /* Void (for contrast) */
-  
-  --secondary: #162038; /* Layer */
-  --secondary-foreground: #EDF2FF; /* Starlight */
-  
-  --muted: #162038; /* Layer */
-  --muted-foreground: #7A8BA6; /* Dusk */
-  
-  --accent: #162038; /* Layer */
-  --accent-foreground: #00C2CC; /* Signal Cyan */
-  
-  --destructive: #ef4444; 
-  --destructive-foreground: #EDF2FF; 
-  
-  --border: #1E2D45; /* Border */
-  --input: #1E2D45; /* Border */
-  --ring: #2A3F60; /* Border Active */
-  
-  --radius: 12px;
+  --void: 12% 0.02 260;
+  --surface: 18% 0.03 260;
+  --signal: 75% 0.15 195;
 }
 
-.dark {
-  --background: #080E1A;
-  --foreground: #EDF2FF;
-  --card: #0F1825;
-  --card-foreground: #EDF2FF;
-  --popover: #0F1825;
-  --popover-foreground: #EDF2FF;
-  
-  --primary: #00C2CC;
-  --primary-foreground: #080E1A;
-  
-  --secondary: #162038;
-  --secondary-foreground: #EDF2FF;
-  
-  --muted: #162038;
-  --muted-foreground: #7A8BA6;
-  
-  --accent: #162038;
-  --accent-foreground: #00C2CC;
-  
-  --destructive: #ef4444;
-  --destructive-foreground: #EDF2FF;
-  
-  --border: #1E2D45;
-  --input: #1E2D45;
-  --ring: #2A3F60;
+body {
+  background-color: oklch(var(--void));
+  color: oklch(95% 0.01 260);
+  font-family: 'Satoshi', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground;
-    font-family: var(--font-sans);
-    line-height: 1.6;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-heading);
-    /* Headlines: Large, confident, italic Editorial New */
-    font-style: italic;
-  }
+.bureau-grid {
+  background-image: 
+    linear-gradient(to right, oklch(var(--surface) / 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(var(--surface) / 0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.beveled-edge {
+  border: 1px solid oklch(25% 0.02 260 / 0.3);
+  box-shadow: 
+    inset 1px 1px 0px oklch(100% 0 0 / 0.05),
+    0px 10px 30px oklch(0% 0 0 / 0.5);
+}
+
+.signal-glow {
+  filter: drop-shadow(0 0 8px oklch(var(--signal) / 0.4));
+}
+
+::selection {
+  background-color: oklch(var(--signal) / 0.3);
+  color: white;
+}
+
+/* Custom scrollbar for Bureaucratic Noir */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: oklch(var(--void));
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(var(--surface));
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(var(--signal) / 0.5);
 }

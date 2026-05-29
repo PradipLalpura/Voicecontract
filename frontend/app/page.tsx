@@ -1,152 +1,115 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useRouter } from "next/navigation";
-import { CompanyForm } from "@/components/CompanyForm";
-import { AudioUploader } from "@/components/AudioUploader";
-import { CompanyDetails } from "@/lib/types";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { ShieldCheck, FileText, Scale } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import ScrollTrigger from "gsap/ScrollTrigger";
+import IdentityWizard from "@/components/IdentityWizard";
+import MultimodalIngestor from "@/components/MultimodalIngestor";
 
-export default function Home() {
-  const router = useRouter();
-  const [companyDetails, setCompanyDetails] = useState<CompanyDetails | null>(null);
+export default function LandingPage() {
+  const [view, setView] = useState<"hero" | "onboarding" | "templates">("hero");
+  const heroRef = useRef<HTMLDivElement>(null);
+  const headlineRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem("voicecontract_company");
-    if (stored) {
-      setCompanyDetails(JSON.parse(stored));
-    }
-  }, []);
+    gsap.registerPlugin(ScrollTrigger);
 
-  const handleSaveCompany = (details: CompanyDetails) => {
-    setCompanyDetails(details);
-    toast.success("LEGAL IDENTITY ESTABLISHED");
-  };
+    if (view === "hero") {
+      const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
 
-  const handleProcessAudio = (file: File) => {
-    if (!companyDetails) {
-      toast.error("IDENTITY REQUIRED");
-      return;
+      tl.fromTo(
+        headlineRef.current,
+        { y: 100, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1.2, stagger: 0.2 }
+      );
+
+      tl.fromTo(
+        ".hero-sub",
+        { opacity: 0 },
+        { opacity: 1, duration: 1 },
+        "-=0.8"
+      );
     }
-    
-    if (typeof window !== "undefined") {
-      (window as any).__voiceContractFile = file;
-    }
-    
-    router.push("/processing");
-  };
+
+    return () => {
+      ScrollTrigger.getAll().forEach(t => t.kill());
+    };
+  }, [view]);
 
   return (
-    <main className="min-h-screen bg-brand-void text-brand-starlight">
-      
-      {/* Structural Background */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] grayscale" />
-        <div className="absolute top-0 right-0 w-px h-full bg-border/20" />
-        <div className="absolute top-0 left-1/2 w-px h-full bg-border/10" />
-      </div>
+    <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6 overflow-hidden">
+      {/* Atmosphere Background */}
+      <div className="absolute inset-0 bg-noise-gradient opacity-40 pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-signal/10 blur-[120px] rounded-full pointer-events-none" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-8 py-16 space-y-24">
-        
-        {/* Bureaucratic Header */}
-        <nav className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-l-4 border-brand-cyan pl-6 py-2 animate-in slide-in-from-left duration-700">
-          <div>
-            <h2 className="font-heading italic text-3xl tracking-tighter uppercase">VoiceContract</h2>
-            <p className="font-mono text-[10px] text-brand-cyan uppercase tracking-[0.4em] mt-1">Autonomous Legal Logic Engine</p>
-          </div>
-          <div className="flex items-center gap-8 font-mono text-[9px] uppercase tracking-widest text-brand-dusk">
-            <div className="flex flex-col items-end">
-              <span>Jurisdiction</span>
-              <span className="text-brand-starlight">India · 2026</span>
-            </div>
-            <div className="h-8 w-px bg-border" />
-            <div className="flex flex-col items-end">
-              <span>Status</span>
-              <span className="text-brand-cyan animate-pulse">Operational</span>
-            </div>
-          </div>
-        </nav>
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full max-w-7xl flex justify-between items-center py-8 z-50 mix-blend-difference px-6">
+        <div className="text-xl font-system tracking-tighter text-signal uppercase cursor-pointer" onClick={() => setView("hero")}>
+          VoiceContract<span className="opacity-50">.Pro</span>
+        </div>
+        <div className="flex gap-12 font-system text-xs tracking-widest uppercase opacity-70">
+          <a href="#" className="hover:text-signal transition-colors">Protocol</a>
+          <a href="#" className="hover:text-signal transition-colors">Archive</a>
+          <a href="#" className="hover:text-signal transition-colors">Auth</a>
+        </div>
+      </nav>
 
-        {/* Hero Segment */}
-        <header className="max-w-4xl space-y-8 animate-in fade-in duration-1000">
-          <h1 className="text-6xl md:text-8xl font-heading italic leading-[0.85] tracking-tight text-white">
-            The meeting ends.<br />
-            <span className="text-brand-cyan opacity-90 underline decoration-1 underline-offset-8">The paperwork is done.</span>
+      {view === "hero" && (
+        <section ref={heroRef} className="relative text-center w-full max-w-6xl">
+          <h1 
+            ref={headlineRef}
+            className="text-white font-display text-[clamp(2.5rem,8vw,5.5rem)] leading-[1.1] tracking-tight mb-8"
+          >
+            The meeting ends.<br/>
+            <span className="text-signal italic">The paperwork is already done.</span>
           </h1>
-          <p className="text-lg md:text-xl text-brand-dusk max-w-2xl font-sans leading-relaxed border-l border-border pl-8 italic">
-            Automating the bridge between professional discussion and legal enforcement. Detailed reasoning. Confidential assembly. Zero delay.
-          </p>
-        </header>
-
-        {/* Integrated Workflow */}
-        <section className="space-y-20">
           
-          {/* STEP 1: Identities */}
-          <div className="space-y-8">
-            <div className="flex items-center gap-4">
-              <span className="h-10 w-10 rounded-full border border-brand-cyan flex items-center justify-center font-mono text-sm text-brand-cyan">01</span>
-              <h2 className="text-xs font-mono uppercase tracking-[0.4em] text-brand-dusk">Contracting Identities</h2>
-            </div>
-            <CompanyForm onSave={handleSaveCompany} initialData={companyDetails} />
-          </div>
+          <p className="hero-sub max-w-xl mx-auto text-white/50 font-sans text-lg md:text-xl mb-12 leading-relaxed">
+            The first autonomous legal co-pilot that listens, reasons, and dispatches 
+            boardroom-ready Master Service Agreements in under 60 seconds.
+          </p>
 
-          {/* STEP 2: Submission */}
-          <div className="grid lg:grid-cols-2 gap-16 items-center border-t border-border pt-20">
-            <div className="space-y-8">
-               <div className="flex items-center gap-4">
-                <span className="h-10 w-10 rounded-full border border-brand-cyan flex items-center justify-center font-mono text-sm text-brand-cyan">02</span>
-                <h2 className="text-xs font-mono uppercase tracking-[0.4em] text-brand-dusk">Conversation Submission</h2>
-              </div>
-              <div className={`transition-all duration-700 ${!companyDetails ? "opacity-20 grayscale blur-sm pointer-events-none" : "opacity-100"}`}>
-                <AudioUploader onProcess={handleProcessAudio} />
-              </div>
-            </div>
-
-            <div className="bg-brand-surface/40 border border-border p-10 space-y-8 rounded-none">
-               <div className="space-y-6">
-                 <div className="flex items-center gap-4">
-                   <ShieldCheck className="h-6 w-6 text-brand-cyan" />
-                   <h3 className="font-heading italic text-xl uppercase">Confidential Processing</h3>
-                 </div>
-                 <p className="text-xs leading-relaxed text-brand-dusk uppercase tracking-widest font-sans">
-                   Every audio stream is processed in a transient memory state. Transcripts are converted to structured legal tokens and immediately discarded.
-                 </p>
-               </div>
-
-               <div className="grid grid-cols-2 gap-8 pt-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-[10px] font-mono text-brand-cyan uppercase">
-                      <FileText className="h-3 w-3" /> Agentic Output
-                    </div>
-                    <p className="text-[9px] text-brand-dusk uppercase">Detailed Master Service Agreements, Purchase Orders, and GST Invoices.</p>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-[10px] font-mono text-brand-cyan uppercase">
-                      <Scale className="h-3 w-3" /> Compliance
-                    </div>
-                    <p className="text-[9px] text-brand-dusk uppercase">Structured according to the Indian Contract Act, 1872.</p>
-                  </div>
-               </div>
-            </div>
+          <div className="hero-sub flex flex-col md:flex-row gap-4 justify-center items-center">
+            <button 
+              onClick={() => setView("onboarding")}
+              className="group relative px-8 py-4 bg-signal text-void font-system text-sm font-bold uppercase tracking-widest overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <span className="relative z-10">Initialize Onboarding</span>
+              <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out" />
+            </button>
+            
+            <button className="px-8 py-4 border border-white/10 hover:border-signal/50 text-white font-system text-sm uppercase tracking-widest transition-all">
+              Watch Technical Audit
+            </button>
           </div>
         </section>
+      )}
 
-        {/* Footer Audit */}
-        <footer className="pt-32 pb-12 border-t border-border flex flex-col md:flex-row justify-between gap-12 text-brand-dusk font-mono text-[8px] uppercase tracking-[0.5em]">
-           <div className="flex flex-col gap-2">
-              <span className="text-brand-starlight">VoiceContract v1.0.4</span>
-              <span>Proprietary Agentic Architecture</span>
-           </div>
-           <div className="flex gap-12">
-              <span>© 2026 JPN Studio / Antarik</span>
-              <span>All Rights Reserved</span>
-           </div>
-        </footer>
+      {view === "onboarding" && (
+        <section className="relative z-20 w-full flex justify-center py-20">
+          <IdentityWizard onComplete={() => setView("templates")} />
+        </section>
+      )}
 
+      {view === "templates" && (
+        <section className="relative z-20 w-full flex flex-col items-center py-20">
+          <div className="mb-16 text-center">
+            <span className="font-system text-[10px] text-signal tracking-[0.4em] uppercase">Intelligence Node: Active</span>
+            <h2 className="text-4xl font-display text-white mt-4">Select Template Strategy</h2>
+          </div>
+          <MultimodalIngestor />
+        </section>
+      )}
+
+      {/* Grid Decals */}
+      <div className="fixed bottom-12 left-12 font-system text-[10px] text-white/20 tracking-[0.2em] uppercase vertical-text origin-left -rotate-90">
+        Engine_Status: Operational // Logic: GPT-4o_Supreme
       </div>
-    </main>
+      <div className="fixed bottom-12 right-12 font-system text-[10px] text-white/20 tracking-[0.2em] uppercase">
+        ©2026 Antarik // Bureaucratic_Noir_v2.0
+      </div>
+    </div>
   );
 }
+
+
