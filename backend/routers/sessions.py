@@ -16,10 +16,14 @@ try:
     from backend.agents.langgraph_firm import LegalDocumentPackage, execute_legal_firm
     from backend.utils.crypto_stamp import generate_document_hash
     from backend.auth.jwt_auth import verify_token
+    from backend.utils.encryption import security_service
+    from backend.database.client import supabase_admin
 except ModuleNotFoundError:
     from agents.langgraph_firm import LegalDocumentPackage, execute_legal_firm
     from utils.crypto_stamp import generate_document_hash
     from auth.jwt_auth import verify_token
+    from utils.encryption import security_service
+    from database.client import supabase_admin
 
 logger = logging.getLogger("voicecontract.sessions")
 
@@ -69,6 +73,42 @@ def create_sessions_router(registry: LegalInputRegistry) -> APIRouter:
         stamp = generate_document_hash(docs_dict)
         logger.info(f"🔒 Generated Crypto Stamp for {session_id}: {stamp}")
 
+        # --- DATABASE INSERTION & ENCRYPTION ---
+        if supabase_admin:
+            try:
+                user_id = current_user.get("sub", "anonymous_user")
+                
+                # 1. Encrypt the document payload
+                encrypted_msa = security_service.encrypt(docs_dict.get("msa", ""))
+                
+                # 2. Insert Deal
+                deal_data = {
+                    "user_id": user_id,
+                    "session_id": session_id,
+                    "client_name": identity.get("client", "Unknown Client"),
+                    "total_value_inr": docs_dict.get("blueprint", {}).get("total_price_inr", 0),
+                    "status": "drafted",
+                    "friction_summary": "Deal generated successfully."
+                }
+                deal_response = supabase_admin.table("deals").insert(deal_data).execute()
+                
+                if deal_response.data:
+                    deal_id = deal_response.data[0]["id"]
+                    
+                    # 3. Insert Encrypted Document
+                    doc_data = {
+                        "deal_id": deal_id,
+                        "doc_type": "msa",
+                        "encrypted_content": encrypted_msa,
+                        "crypto_stamp": stamp
+                    }
+                    supabase_admin.table("documents").insert(doc_data).execute()
+                    
+                    logger.info(f"✅ Securely stored encrypted document and deal info for session {session_id}.")
+            except Exception as db_err:
+                logger.error(f"Database insertion failed: {db_err}")
+
+        # Return cleartext document for frontend session completion phase
         return EndMeetingResponse(session_id=session_id, documents=docs_dict, crypto_stamp=stamp)
 
     return router
