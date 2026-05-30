@@ -9,21 +9,89 @@ export default function VoiceAssistantOrb() {
   const [transcript, setTranscript] = useState("");
   const [agentResponse, setAgentResponse] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  // Speech Recognition Ref
+  const recognitionRef = useRef<any>(null);
 
-  // Simulated Voice Agent Logic
+  useEffect(() => {
+    // Initialize Speech Recognition
+    if (typeof window !== "undefined" && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = true;
+      
+      recognitionRef.current.onresult = (event: any) => {
+        let currentTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          currentTranscript += event.results[i][0].transcript;
+        }
+        setTranscript(currentTranscript);
+      };
+      
+      recognitionRef.current.onerror = (event: any) => {
+        console.error("Speech recognition error:", event.error);
+        setIsListening(false);
+      };
+      
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+        // If we have a transcript, send it to Lex
+        if (transcript) {
+          sendToLex(transcript);
+        }
+      };
+    }
+  }, [transcript]);
+
+  const sendToLex = async (text: string) => {
+    setAgentResponse("Processing your request...");
+    try {
+      const host = process.env.NEXT_PUBLIC_CAPTURE_WS_HOST || "localhost:8000";
+      const protocol = window.location.protocol === "https:" ? "https:" : "http:";
+      const res = await fetch(`${protocol}//${host}/api/assistant/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text })
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setAgentResponse(data.reply);
+        speakResponse(data.reply);
+      } else {
+        setAgentResponse("Lex is currently offline. Please try again later.");
+      }
+    } catch (error) {
+      setAgentResponse("Network error connecting to Lex.");
+    }
+  };
+
+  const speakResponse = (text: string) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Stop current speech
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.voice = window.speechSynthesis.getVoices().find(v => v.lang === 'en-US' && v.name.includes('Google')) || null;
+      utterance.rate = 1.05;
+      utterance.pitch = 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
   const handleToggleListen = () => {
     if (isListening) {
+      recognitionRef.current?.stop();
       setIsListening(false);
-      setAgentResponse("Processing your request...");
-      
-      // Simulate backend LLM thinking and responding
-      setTimeout(() => {
-        setAgentResponse("I can help you set up a new meeting. Just click 'New Meeting' in the top right corner. Would you like me to explain what kind of contracts we can generate?");
-      }, 1500);
     } else {
-      setIsListening(true);
-      setTranscript("How do I use this platform to...");
+      setTranscript("");
       setAgentResponse("");
+      window.speechSynthesis.cancel();
+      try {
+        recognitionRef.current?.start();
+        setIsListening(true);
+      } catch(e) {
+        console.error(e);
+      }
     }
   };
 
@@ -32,6 +100,8 @@ export default function VoiceAssistantOrb() {
       setIsListening(false);
       setTranscript("");
       setAgentResponse("");
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      try { recognitionRef.current?.stop(); } catch(e) {}
     }
   }, [isOpen]);
 
@@ -51,7 +121,6 @@ export default function VoiceAssistantOrb() {
       
       const centerY = canvas.height / 2;
       for (let i = 0; i < canvas.width; i++) {
-        // More erratic when listening, smooth when talking/idle
         const baseAmplitude = isListening ? 20 : (agentResponse ? 15 : 2);
         const noise = isListening ? Math.random() * 5 : 0;
         const amplitude = Math.sin(i * 0.05 + phase) * baseAmplitude + noise;
@@ -60,7 +129,7 @@ export default function VoiceAssistantOrb() {
         else ctx.lineTo(i, centerY + amplitude);
       }
       
-      ctx.strokeStyle = isListening ? "#ef4444" : "#2563EB"; // Red when listening, Blue otherwise
+      ctx.strokeStyle = isListening ? "#ef4444" : "#2563EB"; 
       ctx.lineWidth = 2;
       ctx.lineCap = "round";
       ctx.stroke();

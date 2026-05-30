@@ -46,7 +46,8 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchData() {
       // Check for Onboarding Completion
-      if (hasClerk && user && !user.unsafeMetadata?.onboardingComplete) {
+      const localOnboarding = typeof window !== 'undefined' ? localStorage.getItem('onboardingComplete') : null;
+      if (hasClerk && user && !user.unsafeMetadata?.onboardingComplete && !localOnboarding) {
          router.push('/onboarding');
          return;
       }

@@ -2,25 +2,35 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 import IdentityWizard from "@/components/IdentityWizard";
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { getToken } = useAuth();
+  const { user } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleComplete = async (data: any) => {
     setIsSubmitting(true);
     
     try {
-      // In a real implementation, this would post to a dedicated /api/users/profile endpoint
-      // to update the user's Supabase record or Clerk metadata.
-      // For now, we simulate a successful profile update.
-      console.log("Submitting user profile data:", data);
+      if (user) {
+        // Update Clerk User Metadata so they don't get trapped in a loop
+        await user.update({
+          unsafeMetadata: {
+            ...user.unsafeMetadata,
+            onboardingComplete: true,
+            company_name: data.company_name,
+            gst_number: data.gst_number,
+          }
+        });
+      }
       
-      // Simulate network request
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Fallback local storage for dev mode without Clerk
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('onboardingComplete', 'true');
+      }
       
       // Navigate to dashboard
       router.push("/dashboard");

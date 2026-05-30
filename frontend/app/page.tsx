@@ -8,7 +8,8 @@ import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 
-const Background3D = dynamic(() => import("@/components/Background3D"), { ssr: false });
+const Background3D = dynamic(() => import("@/components/Background3D").then(mod => mod.default), { ssr: false });
+const Mini3D = dynamic(() => import("@/components/Background3D").then(mod => mod.Mini3D), { ssr: false });
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -88,8 +89,8 @@ export default function LandingPage() {
       <header className="fixed top-0 w-full z-50 px-8 py-6 flex justify-between items-center glass-morphism-light">
         <div className="text-xl font-bold tracking-tight text-text">VoiceContract</div>
         <nav className="flex gap-8 items-center text-sm font-medium text-text-muted">
-          <a href="#product" className="hover:text-text transition-colors">Product</a>
-          <a href="#security" className="hover:text-text transition-colors">Security</a>
+          <button onClick={() => document.getElementById('product')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-text transition-colors">Product</button>
+          <button onClick={() => document.getElementById('product')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-text transition-colors">Security</button>
           {renderCTA("Sign In")}
         </nav>
       </header>
@@ -128,28 +129,28 @@ export default function LandingPage() {
       </main>
 
       {/* Further Content Sections (Below the fold) */}
-      <section id="product" className="min-h-screen bg-surface flex flex-col items-center justify-center py-32 px-8">
+      <section id="product" className="min-h-screen bg-surface flex flex-col items-center justify-center py-32 px-8 relative z-10">
         <h2 className="text-4xl font-bold tracking-tight mb-16">Enterprise Grade. Effortless UX.</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl">
-          <div className="p-8 rounded-2xl bg-background border border-border">
-             <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-6">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+          <div className="p-8 rounded-2xl bg-background border border-border shadow-apple-lg hover:shadow-xl transition-shadow group">
+             <div className="w-16 h-16 mb-6 rounded-xl overflow-hidden bg-surface shadow-apple-inner relative">
+                <Background3D mini mode="mic" />
              </div>
-             <h3 className="text-xl font-bold mb-2">Acoustic Perception</h3>
+             <h3 className="text-xl font-bold mb-2 text-text group-hover:text-primary transition-colors">Acoustic Perception</h3>
              <p className="text-text-muted">Capture nuances in real-time. Our agents don't just transcribe; they understand intent.</p>
           </div>
-          <div className="p-8 rounded-2xl bg-background border border-border">
-             <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-6">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+          <div className="p-8 rounded-2xl bg-background border border-border shadow-apple-lg hover:shadow-xl transition-shadow group">
+             <div className="w-16 h-16 mb-6 rounded-xl overflow-hidden bg-surface shadow-apple-inner relative">
+                <Background3D mini mode="lock" />
              </div>
-             <h3 className="text-xl font-bold mb-2">Zero-Trust Security</h3>
+             <h3 className="text-xl font-bold mb-2 text-text group-hover:text-primary transition-colors">Zero-Trust Security</h3>
              <p className="text-text-muted">End-to-End Encryption ensures your deals remain entirely confidential.</p>
           </div>
-          <div className="p-8 rounded-2xl bg-background border border-border">
-             <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-6">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z" /></svg>
+          <div className="p-8 rounded-2xl bg-background border border-border shadow-apple-lg hover:shadow-xl transition-shadow group">
+             <div className="w-16 h-16 mb-6 rounded-xl overflow-hidden bg-surface shadow-apple-inner relative">
+                <Background3D mini mode="seal" />
              </div>
-             <h3 className="text-xl font-bold mb-2">Unforgeable E-Sign</h3>
+             <h3 className="text-xl font-bold mb-2 text-text group-hover:text-primary transition-colors">Unforgeable E-Sign</h3>
              <p className="text-text-muted">Biometric vector capture and cryptographic PDF locking.</p>
           </div>
         </div>
