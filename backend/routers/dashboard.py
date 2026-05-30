@@ -1,74 +1,128 @@
-from __future__ import annotations
-
 import logging
+from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from backend.auth.jwt_auth import verify_token
-from backend.models.deal import Deal, DealStatus, DashboardStats, DealMetric
+from backend.database.client import supabase_admin
+from datetime import datetime
 
 logger = logging.getLogger("voicecontract.dashboard")
 router = APIRouter(prefix="/api/dashboard", tags=["Dashboard"])
 
-# Simulation of a persistent store (In prod: Supabase/PostgreSQL)
-MOCK_DEALS: List[Deal] = [
-    Deal(
-        id="deal_001",
-        session_id="sess_123",
-        client_name="Acme Corp",
-        total_value_inr=50000.0,
-        status=DealStatus.SIGNED,
-        metrics=[
-            DealMetric(pillar="Price", negotiation_time_seconds=120, volatility_score=0.2),
-            DealMetric(pillar="IP Ownership", negotiation_time_seconds=300, volatility_score=0.1)
-        ],
-        friction_summary="IP Ownership was the primary friction point."
-    ),
-    Deal(
-        id="deal_002",
-        session_id="sess_456",
-        client_name="Global Tech",
-        total_value_inr=120000.0,
-        status=DealStatus.SENT,
-        metrics=[
-            DealMetric(pillar="Timeline", negotiation_time_seconds=450, volatility_score=0.4)
-        ]
-    )
-]
+class DealCreateRequest(BaseModel):
+    client_name: str
+    estimated_value_inr: float
 
-@router.get("/stats", response_model=DashboardStats)
-async def get_stats(current_user: dict = Depends(verify_token)):
-    """
-    Returns aggregated business intelligence metrics.
-    """
-    signed_deals = [d for d in MOCK_DEALS if d.status == DealStatus.SIGNED]
-    pending_deals = [d for d in MOCK_DEALS if d.status != DealStatus.SIGNED]
+class DealResponse(BaseModel):
+    id: str
+    client_name: str
+    total_value_inr: float
+    status: str
+    created_at: str
+
+@router.get("/stats")
+async def get_dashboard_stats(current_user: dict = Depends(verify_token)):
+    """Fetch high-level stats for the current user."""
+    user_id = current_user.get("sub", "anonymous_user")
     
-    total_locked = sum(d.total_value_inr for d in signed_deals)
-    pending_rev = sum(d.total_value_inr for d in pending_deals)
+    if not supabase_admin:
+        # Fallback for dev mode without DB
+        return {
+            "total_value_locked": 450000,
+            "pending_revenue": 125000,
+            "deal_count": 8,
+            "conversion_rate": 72.5
+        }
+        
+    try:
+        deals_res = supabase_admin.table("deals").select("*").eq("user_id", user_id).execute()
+        deals = deals_res.data or []
+        
+        locked = sum(d.get("total_value_inr", 0) for d in deals if d.get("status") == "signed")
+        pending = sum(d.get("total_value_inr", 0) for d in deals if d.get("status") in ["drafted", "sent"])
+        
+        return {
+            "total_value_locked": locked,
+            "pending_revenue": pending,
+            "deal_count": len(deals),
+            "conversion_rate": 72.5 # Mock metric for now
+        }
+    except Exception as e:
+        logger.error(f"Error fetching stats: {e}")
+        raise HTTPException(status_code=500, detail="Database access failed.")
+
+@router.get("/deals", response_model=List[DealResponse])
+async def get_recent_deals(current_user: dict = Depends(verify_token)):
+    """Fetch recent deals for the current user."""
+    user_id = current_user.get("sub", "anonymous_user")
     
-    return DashboardStats(
-        total_value_locked=total_locked,
-        pending_revenue=pending_rev,
-        average_deal_size=total_locked / len(signed_deals) if signed_deals else 0,
-        deal_count=len(MOCK_DEALS),
-        conversion_rate=(len(signed_deals) / len(MOCK_DEALS)) * 100 if MOCK_DEALS else 0,
-        top_friction_pillar="IP Ownership"
-    )
+    if not supabase_admin:
+        # Fallback for dev mode
+        return []
+        
+    try:
+        deals_res = supabase_admin.table("deals").select("id, client_name, total_value_inr, status, created_at").eq("user_id", user_id).order("created_at", desc=True).limit(20).execute()
+        
+        formatted_deals = []
+        for d in deals_res.data:
+            # Format date beautifully
+            dt = datetime.fromisoformat(d.get("created_at", datetime.utcnow().isoformat()).replace('Z', '+00:00'))
+            formatted_date = dt.strftime("%b %d, %Y")
+            
+            formatted_deals.append(DealResponse(
+                id=str(d.get("id")),
+                client_name=d.get("client_name", "Unknown"),
+                total_value_inr=float(d.get("total_value_inr", 0)),
+                status=d.get("status", "drafted"),
+                created_at=formatted_date
+            ))
+            
+        return formatted_deals
+    except Exception as e:
+        logger.error(f"Error fetching deals: {e}")
+        raise HTTPException(status_code=500, detail="Database access failed.")
 
-@router.get("/deals", response_model=List[Deal])
-async def list_deals(current_user: dict = Depends(verify_token)):
-    """
-    Returns the list of all deals for the Kanban board.
-    """
-    return MOCK_DEALS
-
-@router.post("/deals/{deal_id}/status")
-async def update_deal_status(deal_id: str, status: DealStatus, current_user: dict = Depends(verify_token)):
-    """
-    Updates a deal's position in the Kanban lifecycle.
-    """
-    for deal in MOCK_DEALS:
-        if deal.id == deal_id:
-            deal.status = status
-            return {"ok": True}
-    raise HTTPException(status_code=404, detail="Deal not found")
+@router.post("/deals/draft", response_model=DealResponse)
+async def draft_new_deal(payload: DealCreateRequest, current_user: dict = Depends(verify_token)):
+    """Creates a new draft deal pre-flight."""
+    user_id = current_user.get("sub", "anonymous_user")
+    
+    if not supabase_admin:
+        # Mock response for dev
+        return DealResponse(
+            id="dev-session-123",
+            client_name=payload.client_name,
+            total_value_inr=payload.estimated_value_inr,
+            status="drafted",
+            created_at=datetime.utcnow().strftime("%b %d, %Y")
+        )
+        
+    import uuid
+    session_id = str(uuid.uuid4())
+    
+    try:
+        new_deal = {
+            "user_id": user_id,
+            "session_id": session_id,
+            "client_name": payload.client_name,
+            "total_value_inr": payload.estimated_value_inr,
+            "status": "drafted"
+        }
+        res = supabase_admin.table("deals").insert(new_deal).execute()
+        
+        if not res.data:
+            raise HTTPException(status_code=500, detail="Failed to create deal.")
+            
+        d = res.data[0]
+        dt = datetime.fromisoformat(d.get("created_at").replace('Z', '+00:00'))
+        
+        return DealResponse(
+            id=d.get("session_id"), # We return the session_id as the ID for routing
+            client_name=d.get("client_name"),
+            total_value_inr=d.get("total_value_inr"),
+            status=d.get("status"),
+            created_at=dt.strftime("%b %d, %Y")
+        )
+    except Exception as e:
+        logger.error(f"Error creating deal: {e}")
+        raise HTTPException(status_code=500, detail="Database access failed.")

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { UserButton, useUser } from "@clerk/nextjs";
+import { UserButton, useUser, useAuth } from "@clerk/nextjs";
 
 type DealStatus = "drafted" | "sent" | "viewed" | "signed" | "cancelled";
 
@@ -25,31 +25,83 @@ interface Stats {
 export default function Dashboard() {
   const router = useRouter();
   const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
+  
   const [stats, setStats] = useState<Stats | null>(null);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Pre-Flight Modal State
+  const [showPreFlight, setShowPreFlight] = useState(false);
+  const [clientName, setClientName] = useState("");
+  const [estimatedValue, setEstimatedValue] = useState("");
+  const [isStarting, setIsStarting] = useState(false);
 
   // Safe Auth Detection
   const hasClerk = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const apiUrl = process.env.NEXT_PUBLIC_CAPTURE_WS_HOST 
+    ? `http://${process.env.NEXT_PUBLIC_CAPTURE_WS_HOST.replace("ws://", "").replace("wss://", "")}` 
+    : "http://localhost:8000";
 
   useEffect(() => {
-    // Simulate fetching dashboard data
-    setTimeout(() => {
-      setStats({
-        total_value_locked: 450000,
-        pending_revenue: 125000,
-        deal_count: 8,
-        conversion_rate: 72.5,
+    async function fetchData() {
+      try {
+        const token = hasClerk ? await getToken() : "dev_token";
+        const headers = {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        };
+
+        const [statsRes, dealsRes] = await Promise.all([
+          fetch(`${apiUrl}/api/dashboard/stats`, { headers }),
+          fetch(`${apiUrl}/api/dashboard/deals`, { headers })
+        ]);
+
+        if (statsRes.ok) setStats(await statsRes.json());
+        if (dealsRes.ok) setDeals(await dealsRes.json());
+      } catch (error) {
+        console.error("Failed to fetch dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (isLoaded) {
+      fetchData();
+    }
+  }, [isLoaded, hasClerk, getToken, apiUrl]);
+
+  const handleStartMeeting = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!clientName || !estimatedValue) return;
+    
+    setIsStarting(true);
+    try {
+      const token = hasClerk ? await getToken() : "dev_token";
+      const res = await fetch(`${apiUrl}/api/dashboard/deals/draft`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          client_name: clientName,
+          estimated_value_inr: parseFloat(estimatedValue)
+        })
       });
-      setDeals([
-        { id: "1", client_name: "Acme Corp", total_value_inr: 50000, status: "signed", created_at: "May 28, 2026" },
-        { id: "2", client_name: "Global Tech", total_value_inr: 120000, status: "sent", created_at: "May 29, 2026" },
-        { id: "3", client_name: "Nexus Labs", total_value_inr: 85000, status: "drafted", created_at: "May 30, 2026" },
-        { id: "4", client_name: "Stellar Soft", total_value_inr: 45000, status: "viewed", created_at: "May 30, 2026" },
-      ]);
-      setLoading(false);
-    }, 800);
-  }, []);
+
+      if (res.ok) {
+        const data = await res.json();
+        // Route to cockpit with the secure session ID
+        router.push(`/cockpit?session=${data.id}`);
+      } else {
+        throw new Error("Failed to create draft deal");
+      }
+    } catch (error) {
+      console.error(error);
+      setIsStarting(false);
+    }
+  };
 
   const getStatusColor = (status: DealStatus) => {
     switch(status) {
@@ -64,7 +116,53 @@ export default function Dashboard() {
   if (!isLoaded && hasClerk) return null;
 
   return (
-    <div className="min-h-screen bg-background text-text font-sans flex flex-col">
+    <div className="min-h-screen bg-background text-text font-sans flex flex-col relative">
+      
+      {/* Pre-Flight Modal */}
+      <AnimatePresence>
+        {showPreFlight && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-text/20 backdrop-blur-sm"
+              onClick={() => setShowPreFlight(false)}
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-surface w-full max-w-md rounded-3xl p-8 shadow-apple-lg border border-border"
+            >
+              <h2 className="text-2xl font-bold tracking-tight mb-2">New Meeting</h2>
+              <p className="text-text-muted text-sm mb-8">Enter the client details to initialize the VoiceContract secure enclave.</p>
+              
+              <form onSubmit={handleStartMeeting} className="space-y-6">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-text-muted mb-2">Client Entity Name</label>
+                  <input 
+                    type="text" required value={clientName} onChange={e => setClientName(e.target.value)}
+                    className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                    placeholder="e.g. Stark Industries"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-text-muted mb-2">Estimated Value (INR)</label>
+                  <input 
+                    type="number" required min="0" value={estimatedValue} onChange={e => setEstimatedValue(e.target.value)}
+                    className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                    placeholder="e.g. 500000"
+                  />
+                </div>
+                <div className="pt-4 flex gap-4">
+                  <button type="button" onClick={() => setShowPreFlight(false)} className="flex-1 py-3 px-4 rounded-xl font-semibold text-text-muted hover:bg-background transition-colors">Cancel</button>
+                  <button type="submit" disabled={isStarting} className="flex-1 py-3 px-4 bg-primary text-white rounded-xl font-semibold shadow-sm hover:bg-primary-hover transition-colors disabled:opacity-50">
+                    {isStarting ? "Initializing..." : "Start Engine"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Premium Header */}
       <header className="sticky top-0 w-full h-20 bg-surface/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-8 z-50 shadow-sm">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/')}>
@@ -76,7 +174,7 @@ export default function Dashboard() {
         
         <div className="flex items-center gap-6">
            <button 
-             onClick={() => router.push('/cockpit')}
+             onClick={() => setShowPreFlight(true)}
              className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-text text-white rounded-full font-medium text-sm hover:bg-black transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
            >
              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -97,7 +195,7 @@ export default function Dashboard() {
               <p className="text-text-muted text-lg">Here is the status of your recent legal executions.</p>
            </div>
            <button 
-             onClick={() => router.push('/cockpit')}
+             onClick={() => setShowPreFlight(true)}
              className="sm:hidden w-full flex justify-center items-center gap-2 px-6 py-4 bg-primary text-white rounded-xl font-semibold shadow-apple hover:bg-primary-hover transition-all"
            >
              New Meeting
@@ -112,10 +210,10 @@ export default function Dashboard() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[
-              { label: "Total Value Locked", val: `₹${stats?.total_value_locked.toLocaleString()}`, sub: "+12% this month" },
-              { label: "Pending Revenue", val: `₹${stats?.pending_revenue.toLocaleString()}`, sub: "3 deals out for signature" },
-              { label: "Conversion Rate", val: `${stats?.conversion_rate}%`, sub: "Industry top quartile" },
-              { label: "Active Deals", val: stats?.deal_count, sub: "Last 30 days" },
+              { label: "Total Value Locked", val: `₹${(stats?.total_value_locked || 0).toLocaleString()}`, sub: "Secured revenue" },
+              { label: "Pending Revenue", val: `₹${(stats?.pending_revenue || 0).toLocaleString()}`, sub: "Deals in progress" },
+              { label: "Conversion Rate", val: `${stats?.conversion_rate || 0}%`, sub: "Industry top quartile" },
+              { label: "Active Deals", val: stats?.deal_count || 0, sub: "Last 30 days" },
             ].map((s, i) => (
               <div key={i} className="bg-surface p-6 rounded-2xl border border-border shadow-sm flex flex-col justify-center transition-all hover:shadow-md">
                 <div className="text-sm font-medium text-text-muted mb-1">{s.label}</div>
@@ -158,7 +256,7 @@ export default function Dashboard() {
                     <tr key={deal.id} className="hover:bg-surface-muted/30 transition-colors group">
                       <td className="px-8 py-5">
                         <div className="font-semibold text-text">{deal.client_name}</div>
-                        <div className="text-xs text-text-muted mt-0.5">ID: {deal.id}</div>
+                        <div className="text-xs text-text-muted mt-0.5">ID: {deal.id.slice(0, 8)}...</div>
                       </td>
                       <td className="px-8 py-5 font-medium text-text">
                         ₹{deal.total_value_inr.toLocaleString()}
