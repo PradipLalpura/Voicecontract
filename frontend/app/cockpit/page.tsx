@@ -16,11 +16,20 @@ export default function Cockpit() {
     }
   }, []);
 
-  const { start, stop, isCapturing, sessionId } = useLiveAudio({
+  const { start, stop, isCapturing, sessionId, status, error } = useLiveAudio({
     enableSystemAudio: true,
     enableMicrophone: true,
     onEvent: handleEvent,
-    sharedSecretSigner: async (clientId, ts) => "dev_signature_bypass" 
+    sharedSecretSigner: async (clientId, ts) => {
+      const secret = process.env.NEXT_PUBLIC_CAPTURE_SHARED_SECRET;
+      if (!secret) return "dev_signature_bypass";
+      const encoder = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        "raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+      );
+      const signatureBuffer = await crypto.subtle.sign("HMAC", key, encoder.encode(clientId + ts));
+      return Array.from(new Uint8Array(signatureBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
   });
 
   useEffect(() => {
@@ -72,10 +81,18 @@ export default function Cockpit() {
                 Recording
              </div>
            )}
+           {error && (
+             <div className="flex items-center gap-2 px-3 py-1 bg-red-50 text-red-600 rounded-full text-xs font-semibold border border-red-200">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                {error}
+             </div>
+           )}
         </div>
         <div className="flex gap-4">
           {!isCapturing ? (
-            <button onClick={start} className="px-6 py-2.5 bg-text text-white rounded-full font-semibold shadow-apple hover:bg-black transition-all">Start Listening</button>
+            <button onClick={start} disabled={status === "connecting" || status === "requesting-permission"} className="px-6 py-2.5 bg-text text-white rounded-full font-semibold shadow-apple hover:bg-black transition-all disabled:opacity-50">
+              {status === "connecting" ? "Connecting..." : status === "requesting-permission" ? "Allow Mic..." : "Start Listening"}
+            </button>
           ) : (
             <button onClick={() => { stop(); router.push(`/processing?session=${sessionId}`); }} className="px-6 py-2.5 bg-primary text-white rounded-full font-semibold shadow-apple hover:bg-primary-hover transition-all">End & Draft Contract</button>
           )}
