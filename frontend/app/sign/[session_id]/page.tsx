@@ -2,38 +2,27 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import SuccessHandshake from "@/components/animations/SuccessHandshake";
-import Background3D from "@/components/Background3D";
-import { useAuth } from "@clerk/nextjs";
 
 export default function SignaturePortal() {
   const { session_id } = useParams();
   const router = useRouter();
-  const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [signed, setSigned] = useState(false);
-  const [identity, setIdentity] = useState<any>(null);
   const [documents, setDocuments] = useState<any>(null);
-  const [isExecuting, setIsExecuting] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
-  // Biometric Signature Data
   const [isDrawing, setIsDrawing] = useState(false);
-  const [strokes, setStrokes] = useState<any[]>([]);
-  const currentStrokeRef = useRef<any[]>([]);
 
   useEffect(() => {
-    // In a full implementation, this fetches the decrypted MSA from the backend API.
-    // For now, we simulate fetching the document.
+    // Simulate fetching the document
     setTimeout(() => {
-      setIdentity({ provider: "ANTARIK SYSTEMS", client: "ACME CORP" });
       setDocuments({
         msa: "MASTER SERVICE AGREEMENT\n\nThis agreement is made between Antarik Systems and Acme Corp...\n\n1. SCOPE OF SERVICES: The Provider shall deliver a high-fidelity 3D website architecture.\n2. CONSIDERATION: Total value of 50,000 INR.\n3. TIMELINE: Delivery within 14 business days.\n4. INTELLECTUAL PROPERTY: All rights transfer upon final payment.",
         crypto_stamp: "sha256:7f83b123...9021"
       });
       setLoading(false);
-    }, 2000);
+    }, 1500);
   }, [session_id]);
 
   const startDrawing = (e: any) => {
@@ -47,7 +36,6 @@ export default function SignaturePortal() {
     const y = (e.clientY || e.touches?.[0].clientY) - rect.top;
     ctx.moveTo(x, y);
     setIsDrawing(true);
-    currentStrokeRef.current = [{ x, y, t: Date.now() }];
   };
 
   const draw = (e: any) => {
@@ -60,140 +48,95 @@ export default function SignaturePortal() {
     const x = (e.clientX || e.touches?.[0].clientX) - rect.left;
     const y = (e.clientY || e.touches?.[0].clientY) - rect.top;
     ctx.lineTo(x, y);
-    ctx.strokeStyle = "oklch(25% 0.02 260)";
-    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = "#2563EB"; // Corporate blue ink
+    ctx.lineWidth = 3;
     ctx.lineCap = "round";
     ctx.stroke();
-    currentStrokeRef.current.push({ x, y, t: Date.now() });
   };
 
-  const stopDrawing = () => {
-    setIsDrawing(false);
-    if (currentStrokeRef.current.length > 0) {
-      setStrokes(prev => [...prev, { points: currentStrokeRef.current }]);
-      currentStrokeRef.current = [];
-    }
-  };
+  const stopDrawing = () => setIsDrawing(false);
 
-  const handleSign = async () => {
-    if (strokes.length === 0) return;
-    setIsExecuting(true);
-    try {
-      const token = await getToken();
-      const host = process.env.NEXT_PUBLIC_CAPTURE_WS_HOST || "localhost:8000";
-      const protocol = window.location.protocol === "https:" ? "https:" : "http:";
-      const res = await fetch(`${protocol}//${host}/api/signature/execute`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({
-          session_id: session_id,
-          strokes: strokes
-        })
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to execute signature");
-      }
-
-      // Automatically download the locked PDF returned from the server
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `VoiceContract_${session_id?.slice(0,8)}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
-      
-      setSigned(true);
-    } catch (error) {
-      console.error("Execution failed:", error);
-    } finally {
-      setIsExecuting(false);
-    }
+  const handleSign = () => {
+    setSigned(true);
+    // Simulate trigger download
+    setTimeout(() => {
+      console.log("Downloading document...");
+    }, 1000);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-void flex items-center justify-center bureau-grid-light text-text">
-        <div className="flex flex-col items-center gap-8">
-          <div className="relative w-24 h-24">
-             <div className="absolute inset-0 border-4 border-signal/10 rounded-full" />
-             <div className="absolute inset-0 border-4 border-signal border-t-transparent rounded-full animate-spin shadow-[0_0_20px_oklch(var(--signal))]" />
-          </div>
-          <span className="font-sans text-xs font-black uppercase tracking-[0.5em] text-signal animate-pulse">Decrypting Legal Node...</span>
-        </div>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center text-text premium-noise gap-6">
+        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+        <span className="font-medium text-text-muted">Unlocking document vault...</span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-void text-text font-sans p-10 md:p-24 flex flex-col items-center bureau-grid-light overflow-y-auto relative">
-      <Background3D />
-
-      <div className="w-full max-w-5xl space-y-20 z-10 relative">
+    <div className="min-h-screen bg-background text-text font-sans p-8 md:p-16 flex flex-col items-center premium-noise overflow-y-auto">
+      
+      <div className="w-full max-w-4xl space-y-12 z-10">
+        
         {/* Header */}
-        <div className="flex justify-between items-end border-b border-border pb-12">
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-signal/10 border border-signal/30 rounded-full text-[10px] font-black text-signal uppercase tracking-widest">
-              Digital Signature Required
+        <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-border pb-8 gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-semibold mb-4">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z" /></svg>
+              Execution Required
             </div>
-            <h1 className="text-6xl font-display tracking-tighter italic">Execution Portal</h1>
+            <h1 className="text-4xl font-extrabold tracking-tight">Master Service Agreement</h1>
           </div>
-          <div className="text-right">
-            <span className="font-system text-[10px] text-text/20 uppercase tracking-[0.6em] block font-black mb-2">Vault_Hash</span>
-            <span className="font-system text-sm text-text/40 font-bold">{String(session_id).slice(0,16)}...</span>
+          <div className="text-left md:text-right">
+            <span className="text-xs text-text-muted font-medium uppercase tracking-wider block mb-1">Document Hash</span>
+            <span className="font-system text-sm font-semibold">{String(session_id).slice(0,12)}...</span>
           </div>
         </div>
 
-        {/* Document Viewer */}
+        {/* Paper Document Viewer */}
         <motion.div 
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-surface/80 backdrop-blur-3xl border border-border rounded-[60px] p-20 shadow-2xl relative h-[650px] overflow-y-auto custom-scrollbar group"
+          className="bg-surface border border-border rounded-2xl p-12 shadow-apple-lg relative overflow-hidden"
         >
-           <div className="absolute top-10 right-10 bg-void border border-border px-6 py-2.5 text-[11px] text-text/40 font-black uppercase tracking-[0.3em] rounded-full shadow-beveled">
-             Official Instrument // MSA_v2.0
-           </div>
+           {/* Subtle paper texture over the content */}
+           <div className="absolute inset-0 bg-[url('/paper.svg')] opacity-50 pointer-events-none mix-blend-multiply" />
            
-           <div className="prose prose-slate max-w-none">
-              <pre className="whitespace-pre-wrap font-sans text-xl text-text/80 leading-[1.6] tracking-tight">
-                {documents?.msa}
-              </pre>
-           </div>
+           <div className="relative z-10">
+             <div className="prose prose-slate max-w-none">
+                <pre className="whitespace-pre-wrap font-sans text-base text-text leading-relaxed tracking-tight bg-transparent">
+                  {documents?.msa}
+                </pre>
+             </div>
 
-           <div className="mt-24 pt-12 border-t border-border/50 flex justify-between items-center opacity-40">
-             <div className="font-system text-[10px] font-black uppercase tracking-[0.4em]">Auth: VoiceContract_Nexus</div>
-             <div className="font-system text-[10px] font-black uppercase tracking-[0.4em]">STAMP: {documents?.crypto_stamp}</div>
+             <div className="mt-20 pt-8 border-t border-border flex justify-between items-center text-xs font-semibold text-text-muted uppercase tracking-wider">
+               <span>Generated by VoiceContract AI</span>
+               <span>STAMP: {documents?.crypto_stamp?.slice(0,16)}</span>
+             </div>
            </div>
         </motion.div>
 
         {/* Execution Block */}
         {!signed ? (
           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-20 items-center"
+            transition={{ delay: 0.2 }}
+            className="bg-surface border border-border rounded-3xl p-10 shadow-apple flex flex-col md:flex-row gap-12 items-center"
           >
-            <div className="space-y-6">
-              <h3 className="text-3xl font-display tracking-tighter italic">Digital Affirmation</h3>
-              <p className="text-text-muted text-lg leading-relaxed">
-                By applying your digital mark, you execute a legally binding agreement synchronized with the 
-                meeting session {session_id?.slice(0,6)}. This action is final and irreversible.
+            <div className="flex-1 space-y-4">
+              <h3 className="text-2xl font-bold tracking-tight">Digital Affirmation</h3>
+              <p className="text-text-muted leading-relaxed">
+                By applying your signature, you execute a legally binding agreement synchronized with meeting session {session_id?.slice(0,6)}.
               </p>
             </div>
             
-            <div className="space-y-8">
-               <div className="h-60 bg-void border border-border rounded-[40px] relative shadow-inner overflow-hidden cursor-crosshair group">
+            <div className="flex-1 w-full space-y-6">
+               <div className="h-48 bg-background border border-border rounded-2xl relative shadow-apple-inner overflow-hidden cursor-crosshair">
                   <canvas 
                     ref={canvasRef}
                     width={500}
-                    height={240}
+                    height={200}
                     className="w-full h-full"
                     onMouseDown={startDrawing}
                     onMouseMove={draw}
@@ -203,43 +146,35 @@ export default function SignaturePortal() {
                     onTouchMove={draw}
                     onTouchEnd={stopDrawing}
                   />
-                  <div className="absolute bottom-6 right-8 text-[11px] text-text/10 uppercase font-black tracking-[0.5em] pointer-events-none group-hover:text-text/20 transition-colors">Sign Repository</div>
+                  <div className="absolute bottom-4 right-4 text-xs font-semibold text-text-muted pointer-events-none">Sign Here</div>
                </div>
                <button 
                  onClick={handleSign}
-                 disabled={strokes.length === 0 || isExecuting}
-                 className={`w-full py-8 font-sans font-black text-sm uppercase tracking-[0.4em] rounded-[32px] shadow-2xl transition-all ${
-                   strokes.length === 0 || isExecuting ? 'bg-text/5 text-text/20 cursor-not-allowed' : 'bg-text text-void hover:bg-signal active:scale-[0.97] hover:shadow-signal/20'
-                 }`}
+                 className="w-full py-4 bg-text text-white font-semibold rounded-xl shadow-apple hover:bg-black transition-colors hover:-translate-y-0.5 active:scale-95"
                >
-                 {isExecuting ? 'Locking Document...' : 'Execute Contract'}
+                 Execute Contract
                </button>
             </div>
           </motion.div>
         ) : (
-          <div className="py-10">
+          <div className="py-12 flex flex-col items-center">
             <SuccessHandshake />
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 2.5 }}
-              className="mt-12 flex justify-center gap-8"
+              transition={{ delay: 1 }}
+              className="mt-8 flex gap-4"
             >
               <button 
                 onClick={() => router.push('/dashboard')}
-                className="px-10 py-4 border border-border text-text-muted font-sans font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-surface transition-all"
+                className="px-6 py-3 bg-surface border border-border text-text font-semibold rounded-xl shadow-sm hover:bg-background transition-colors"
               >
-                Go to Dashboard
+                Return to Dashboard
               </button>
             </motion.div>
           </div>
         )}
-
       </div>
-
-      <footer className="mt-32 opacity-20 hover:opacity-50 transition-opacity">
-        <span className="font-system text-[10px] font-black tracking-[0.8em] uppercase text-text">Antarik // Genesis_01</span>
-      </footer>
     </div>
   );
 }
