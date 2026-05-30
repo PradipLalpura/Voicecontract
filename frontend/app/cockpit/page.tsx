@@ -56,7 +56,16 @@ export default function Cockpit() {
     enableSystemAudio: true,
     enableMicrophone: true,
     onEvent: handleEvent,
-    sharedSecretSigner: async (clientId, ts) => "dev_signature_bypass" 
+    sharedSecretSigner: async (clientId, ts) => {
+      const secret = process.env.NEXT_PUBLIC_CAPTURE_SHARED_SECRET;
+      if (!secret) return "dev_signature_bypass";
+      const encoder = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        "raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+      );
+      const signatureBuffer = await crypto.subtle.sign("HMAC", key, encoder.encode(clientId + ts));
+      return Array.from(new Uint8Array(signatureBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
   });
 
   useEffect(() => {
