@@ -18,6 +18,15 @@ from typing import Any
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.websockets import WebSocketState
+from dotenv import load_dotenv
+
+# --- LOAD ENVIRONMENT VARIABLES ---
+# Explicitly load from root .env if running from backend folder or root
+_env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
+if os.path.exists(_env_path):
+    load_dotenv(_env_path)
+else:
+    load_dotenv() # Fallback to default behavior
 
 # --- ROBUST IMPORT SYSTEM ---
 # This ensures imports work whether running from root or from within /backend
@@ -35,6 +44,7 @@ try:
     from backend.routers.sessions import create_sessions_router
     from backend.routers.dispatch import router as dispatch_router
     from backend.routers.dashboard import router as dashboard_router
+    from backend.routers.webhooks import router as webhooks_router
 except ModuleNotFoundError:
     # Fallback for internal folder imports
     from agents.context_agent import Commitment, ContextAgent, ContextAgentError
@@ -43,6 +53,7 @@ except ModuleNotFoundError:
     from routers.sessions import create_sessions_router
     from routers.dispatch import router as dispatch_router
     from routers.dashboard import router as dashboard_router
+    from routers.webhooks import router as webhooks_router
 
 
 logger = logging.getLogger("voicecontract.capture")
@@ -281,6 +292,7 @@ app.add_middleware(
 app.include_router(create_sessions_router(registry))
 app.include_router(dispatch_router)
 app.include_router(dashboard_router)
+app.include_router(webhooks_router)
 
 
 @app.on_event("startup")

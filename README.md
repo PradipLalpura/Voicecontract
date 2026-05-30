@@ -1,6 +1,6 @@
-# 🎙️ VoiceContract Pro: Awwwards-Winning 3D Legal Nexus
+# 🎙️ VoiceContract: Awwwards-Winning 3D Legal Nexus
 
-VoiceContract Pro is an elite, autonomous legal ecosystem that transforms raw conversational intent into cryptographically secured, boardroom-ready Master Service Agreements in real-time.
+VoiceContract is an elite, autonomous legal ecosystem that transforms raw conversational intent into cryptographically secured, boardroom-ready Master Service Agreements in real-time.
 
 ## 🚀 The Awwwards-Winning Rebirth
 We have completely redesigned the experience from the ground up to focus on **Atmospheric Storytelling** and **3D Playful Trust**.
@@ -42,4 +42,4 @@ npm run dev
 3. **Interception:** Enter the Cockpit and let the Sentinel monitor your negotiation.
 4. **Execution:** Sign the crystal-clear instrument in the Execution Vault.
 
-**VoiceContract Pro: Where legal precision meets atmospheric wonder.** 🛸🎨🛡️🚀✨
+**VoiceContract: Where legal precision meets atmospheric wonder.** 🛸🎨🛡️🚀✨

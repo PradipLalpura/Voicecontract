@@ -3,7 +3,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "VoiceContract Pro | Awwwards-Winning 3D Legal Nexus",
+  title: "VoiceContract | Awwwards-Winning 3D Legal Nexus",
   description: "The world's most immersive autonomous legal department.",
 };
 
