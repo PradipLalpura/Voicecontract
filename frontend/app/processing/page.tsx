@@ -35,7 +35,7 @@ function ProcessingContent() {
       } else {
         clearInterval(interval);
         setTimeout(() => {
-          router.push(`/sign/${sessionId || "demo-session"}`);
+          router.push(`/review/${sessionId || "demo-session"}`);
         }, 1500);
       }
     }, 1200);

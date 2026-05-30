@@ -15,7 +15,8 @@ export default function DocumentVault() {
   
   const [loading, setLoading] = useState(true);
   const [isDispatching, setIsProcessing] = useState(false);
-  const [signed, setSigned] = useState(false);
+  const [providerSigned, setProviderSigned] = useState(false);
+  const [clientLinkSent, setClientLinkSent] = useState(false);
   const [activeDoc, setActiveDoc] = useState<DocType>('msa');
   const [documents, setDocuments] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -65,13 +66,22 @@ export default function DocumentVault() {
 
   const stopDrawing = () => setIsDrawing(false);
 
-  const handleExecute = async () => {
+  const handleProviderSign = async () => {
     setIsProcessing(true);
-    // Simulate Dispatch and Locking
+    // Ephemeral signature vector transmission (in a real app, send vector points, not image)
     setTimeout(() => {
-      setSigned(true);
+      setProviderSigned(true);
       setIsProcessing(false);
-    }, 3000);
+    }, 1500);
+  };
+
+  const handleDispatchToClient = async () => {
+    setIsProcessing(true);
+    // Simulate Dispatch of secure link
+    setTimeout(() => {
+      setClientLinkSent(true);
+      setIsProcessing(false);
+    }, 2000);
   };
 
   if (loading) {
@@ -143,11 +153,11 @@ export default function DocumentVault() {
 
            {/* Execution Sidebar */}
            <aside className="space-y-8">
-              {!signed ? (
+              {!providerSigned ? (
                 <div className="bg-surface border border-border rounded-[40px] p-10 shadow-xl space-y-10 sticky top-32">
                    <div className="space-y-4">
-                      <h3 className="text-2xl font-black tracking-tight uppercase italic leading-none">Execution_Pad</h3>
-                      <p className="text-sm font-medium text-text-muted leading-relaxed">As the Provider, apply your digital mark to finalize the instrument.</p>
+                      <h3 className="text-2xl font-black tracking-tight uppercase italic leading-none">Provider_Pad</h3>
+                      <p className="text-sm font-medium text-text-muted leading-relaxed">Apply your digital mark. The biometric vector will lock the PDF and vanish from memory.</p>
                    </div>
 
                    <div className="h-48 bg-background border border-border rounded-[32px] relative shadow-inner overflow-hidden cursor-crosshair">
@@ -169,15 +179,35 @@ export default function DocumentVault() {
 
                    <div className="space-y-4">
                       <button 
-                        onClick={handleExecute}
+                        onClick={handleProviderSign}
                         disabled={isDispatching}
                         className="w-full py-5 bg-text text-white rounded-3xl font-black uppercase tracking-[0.2em] text-xs shadow-apple hover:bg-black transition-all transform active:scale-95 disabled:opacity-50"
                       >
-                        {isDispatching ? 'Locking_Vault...' : 'Execute_&_Dispatch'}
+                        {isDispatching ? 'Encrypting_Vector...' : 'Apply_Provider_Seal'}
+                      </button>
+                   </div>
+                </div>
+              ) : !clientLinkSent ? (
+                <div className="bg-surface border border-border rounded-[40px] p-10 shadow-xl space-y-10 sticky top-32">
+                   <div className="text-center space-y-4">
+                      <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      </div>
+                      <h3 className="text-2xl font-black uppercase italic tracking-tighter">Seal_Applied</h3>
+                      <p className="text-text-muted font-bold text-xs leading-relaxed uppercase tracking-widest">Your vector is locked.<br/>Awaiting Client Signature.</p>
+                   </div>
+                   
+                   <div className="space-y-4 pt-6 border-t border-border">
+                      <button 
+                        onClick={handleDispatchToClient}
+                        disabled={isDispatching}
+                        className="w-full py-5 bg-primary text-white rounded-3xl font-black uppercase tracking-[0.1em] text-xs shadow-apple hover:bg-primary-hover transition-all transform active:scale-95 disabled:opacity-50"
+                      >
+                        {isDispatching ? 'Dispatching...' : 'Request_Client_Signature'}
                       </button>
                       <div className="flex items-center gap-3 px-4 py-3 bg-blue-50 border border-blue-100 rounded-2xl">
                          <svg className="w-5 h-5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                         <p className="text-[10px] font-bold text-blue-600 leading-tight uppercase">Documents will be sent via WhatsApp and Email instantly.</p>
+                         <p className="text-[10px] font-bold text-blue-600 leading-tight uppercase">A secure, one-time link will be sent via WhatsApp and Email.</p>
                       </div>
                    </div>
                 </div>
@@ -185,7 +215,7 @@ export default function DocumentVault() {
                 <div className="space-y-10 sticky top-32 flex flex-col items-center">
                    <SuccessHandshake />
                    <div className="text-center space-y-4">
-                      <h3 className="text-3xl font-black uppercase italic tracking-tighter">Assets_Dispatched</h3>
+                      <h3 className="text-3xl font-black uppercase italic tracking-tighter">Link_Dispatched</h3>
                       <p className="text-text-muted font-bold text-sm leading-relaxed uppercase tracking-widest">Client notified via secure link.<br/>Vault remains locked.</p>
                    </div>
                    <button 

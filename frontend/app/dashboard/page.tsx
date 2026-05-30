@@ -283,21 +283,37 @@ export default function Dashboard() {
            </motion.button>
 
            {/* Action 2: Upload */}
-           <motion.button 
-             whileHover={{ y: -5, scale: 1.02 }} whileTap={{ scale: 0.98 }}
-             className="relative h-80 bg-surface rounded-[48px] overflow-hidden group shadow-xl border border-border/50"
-           >
-              <div className="absolute inset-0 bg-slate-50 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative z-10 h-full p-12 flex flex-col justify-between items-start text-left">
-                 <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/10">
-                    <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                 </div>
-                 <div>
-                    <h3 className="text-4xl font-black text-text tracking-tighter uppercase italic leading-none mb-4">Upload_Call<br/>Recording</h3>
-                    <p className="text-text-muted font-bold uppercase tracking-widest text-[10px]">Process pre-recorded audio via AI Vault</p>
-                 </div>
-              </div>
-           </motion.button>
+           <div className="relative h-80">
+             <input
+                type="file"
+                accept="audio/*"
+                className="hidden"
+                id="upload-audio"
+                onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    alert("Uploading audio: " + e.target.files[0].name + " (Async processing started)");
+                    // Here we would call the backend to process the audio
+                    setTimeout(() => router.push(`/processing?session=upload-${Date.now()}`), 1000);
+                  }
+                }}
+             />
+             <motion.label 
+               htmlFor="upload-audio"
+               whileHover={{ y: -5, scale: 1.02 }} whileTap={{ scale: 0.98 }}
+               className="cursor-pointer block relative h-full bg-surface rounded-[48px] overflow-hidden group shadow-xl border border-border/50"
+             >
+                <div className="absolute inset-0 bg-slate-50 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative z-10 h-full p-12 flex flex-col justify-between items-start text-left">
+                   <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/10">
+                      <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                   </div>
+                   <div>
+                      <h3 className="text-4xl font-black text-text tracking-tighter uppercase italic leading-none mb-4">Upload_Call<br/>Recording</h3>
+                      <p className="text-text-muted font-bold uppercase tracking-widest text-[10px]">Process pre-recorded audio via AI Vault</p>
+                   </div>
+                </div>
+             </motion.label>
+           </div>
         </div>
 
         {/* Meeting Ledger - Historical Memory */}
