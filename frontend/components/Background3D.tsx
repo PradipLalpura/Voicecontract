@@ -8,8 +8,7 @@ import {
   Environment, 
   ContactShadows,
   RoundedBox,
-  QuadraticBezierLine,
-  Text
+  QuadraticBezierLine
 } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -48,9 +47,6 @@ function Phone(props: any) {
         <planeGeometry args={[1.3, 2.8]} />
         <meshBasicMaterial color="#00C2CC" transparent opacity={0.2} />
       </mesh>
-      <Text position={[0, 0, 0.12]} fontSize={0.2} color="#00C2CC" anchorX="center" anchorY="middle">
-        Voice
-      </Text>
     </group>
   );
 }
