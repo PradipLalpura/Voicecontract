@@ -45,6 +45,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function fetchData() {
+      // Check for Onboarding Completion
+      if (hasClerk && user && !user.unsafeMetadata?.onboardingComplete) {
+         router.push('/onboarding');
+         return;
+      }
+
       try {
         const token = hasClerk ? await getToken() : "dev_token";
         const headers = {
