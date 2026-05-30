@@ -6,7 +6,9 @@ import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import Background3D, { CharacterScene } from "@/components/Background3D";
+import dynamic from "next/dynamic";
+
+const Background3D = dynamic(() => import("@/components/Background3D"), { ssr: false });
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -95,13 +97,9 @@ export default function LandingPage() {
       {/* Main Storytelling Container (Pinned during scroll) */}
       <main ref={mainRef} className="relative h-screen w-full overflow-hidden">
         
-        {/* 3D Spline Layer (Shared across stages) */}
-        {/* Using a placeholder Spline scene that looks abstract/glassy. 
-            Ideally, this is a custom scene that starts as a glass wave and rotates to reveal devices. */}
+        {/* 3D R3F Native Layer */}
         <div ref={splineContainerRef} className="absolute inset-0 z-0 pointer-events-auto flex items-center justify-center">
-           <Suspense fallback={null}>
-             <CharacterScene scene="https://prod.spline.design/6Wq1Q7YGyWf8Z9eR/scene.splinecode" className="w-full h-full" />
-           </Suspense>
+             <Background3D />
         </div>
 
         {/* Stage 1 Content (Centered) */}
