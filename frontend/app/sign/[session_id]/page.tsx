@@ -5,18 +5,27 @@ import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import SuccessHandshake from "@/components/animations/SuccessHandshake";
 import Background3D from "@/components/Background3D";
+import { useAuth } from "@clerk/nextjs";
 
 export default function SignaturePortal() {
   const { session_id } = useParams();
   const router = useRouter();
+  const { getToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [signed, setSigned] = useState(false);
   const [identity, setIdentity] = useState<any>(null);
   const [documents, setDocuments] = useState<any>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  // Biometric Signature Data
   const [isDrawing, setIsDrawing] = useState(false);
+  const [strokes, setStrokes] = useState<any[]>([]);
+  const currentStrokeRef = useRef<any[]>([]);
 
   useEffect(() => {
+    // In a full implementation, this fetches the decrypted MSA from the backend API.
+    // For now, we simulate fetching the document.
     setTimeout(() => {
       setIdentity({ provider: "ANTARIK SYSTEMS", client: "ACME CORP" });
       setDocuments({
@@ -34,10 +43,11 @@ export default function SignaturePortal() {
     if (!ctx) return;
     ctx.beginPath();
     const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX || e.touches[0].clientX) - rect.left;
-    const y = (e.clientY || e.touches[0].clientY) - rect.top;
+    const x = (e.clientX || e.touches?.[0].clientX) - rect.left;
+    const y = (e.clientY || e.touches?.[0].clientY) - rect.top;
     ctx.moveTo(x, y);
     setIsDrawing(true);
+    currentStrokeRef.current = [{ x, y, t: Date.now() }];
   };
 
   const draw = (e: any) => {
@@ -47,30 +57,64 @@ export default function SignaturePortal() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX || e.touches[0].clientX) - rect.left;
-    const y = (e.clientY || e.touches[0].clientY) - rect.top;
+    const x = (e.clientX || e.touches?.[0].clientX) - rect.left;
+    const y = (e.clientY || e.touches?.[0].clientY) - rect.top;
     ctx.lineTo(x, y);
     ctx.strokeStyle = "oklch(25% 0.02 260)";
     ctx.lineWidth = 2.5;
     ctx.lineCap = "round";
     ctx.stroke();
+    currentStrokeRef.current.push({ x, y, t: Date.now() });
   };
 
-  const triggerDownload = () => {
-    const blob = new Blob([documents?.msa], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Antarik_Contract_${session_id?.slice(0,8)}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    a.remove();
+  const stopDrawing = () => {
+    setIsDrawing(false);
+    if (currentStrokeRef.current.length > 0) {
+      setStrokes(prev => [...prev, { points: currentStrokeRef.current }]);
+      currentStrokeRef.current = [];
+    }
   };
 
-  const handleSign = () => {
-    setSigned(true);
-    triggerDownload();
+  const handleSign = async () => {
+    if (strokes.length === 0) return;
+    setIsExecuting(true);
+    try {
+      const token = await getToken();
+      const host = process.env.NEXT_PUBLIC_CAPTURE_WS_HOST || "localhost:8000";
+      const protocol = window.location.protocol === "https:" ? "https:" : "http:";
+      const res = await fetch(`${protocol}//${host}/api/signature/execute`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          session_id: session_id,
+          strokes: strokes
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to execute signature");
+      }
+
+      // Automatically download the locked PDF returned from the server
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `VoiceContract_${session_id?.slice(0,8)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      
+      setSigned(true);
+    } catch (error) {
+      console.error("Execution failed:", error);
+    } finally {
+      setIsExecuting(false);
+    }
   };
 
   if (loading) {
@@ -153,18 +197,22 @@ export default function SignaturePortal() {
                     className="w-full h-full"
                     onMouseDown={startDrawing}
                     onMouseMove={draw}
-                    onMouseUp={() => setIsDrawing(false)}
+                    onMouseUp={stopDrawing}
+                    onMouseLeave={stopDrawing}
                     onTouchStart={startDrawing}
                     onTouchMove={draw}
-                    onTouchEnd={() => setIsDrawing(false)}
+                    onTouchEnd={stopDrawing}
                   />
                   <div className="absolute bottom-6 right-8 text-[11px] text-text/10 uppercase font-black tracking-[0.5em] pointer-events-none group-hover:text-text/20 transition-colors">Sign Repository</div>
                </div>
                <button 
                  onClick={handleSign}
-                 className="w-full py-8 bg-text text-void font-sans font-black text-sm uppercase tracking-[0.4em] rounded-[32px] shadow-2xl hover:bg-signal transition-all active:scale-[0.97] hover:shadow-signal/20"
+                 disabled={strokes.length === 0 || isExecuting}
+                 className={`w-full py-8 font-sans font-black text-sm uppercase tracking-[0.4em] rounded-[32px] shadow-2xl transition-all ${
+                   strokes.length === 0 || isExecuting ? 'bg-text/5 text-text/20 cursor-not-allowed' : 'bg-text text-void hover:bg-signal active:scale-[0.97] hover:shadow-signal/20'
+                 }`}
                >
-                 Execute Contract
+                 {isExecuting ? 'Locking Document...' : 'Execute Contract'}
                </button>
             </div>
           </motion.div>
