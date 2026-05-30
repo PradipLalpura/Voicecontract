@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from '@clerk/nextjs'
 import "./globals.css";
-import VoiceAssistantOrb from "@/components/VoiceAssistantOrb";
+import ClientOrbWrapper from "@/components/ClientOrbWrapper";
 
 export const metadata: Metadata = {
   title: "VoiceContract | Autonomous Legal Engine",
@@ -22,7 +22,7 @@ export default function RootLayout({
         <body className="selection:bg-primary/30 text-text bg-background">
           <main className="min-h-screen">
             {children}
-            <VoiceAssistantOrb />
+            <ClientOrbWrapper />
           </main>
         </body>
       </html>
@@ -49,7 +49,7 @@ export default function RootLayout({
         <body className="selection:bg-primary/30 text-text bg-background">
           <main className="min-h-screen">
             {children}
-            <VoiceAssistantOrb />
+            <ClientOrbWrapper />
           </main>
         </body>
       </html>

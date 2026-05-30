@@ -7,6 +7,11 @@ CREATE TABLE IF NOT EXISTS public.users (
     email TEXT UNIQUE NOT NULL,
     first_name TEXT,
     last_name TEXT,
+    company_name TEXT,
+    gst_number TEXT,
+    address TEXT,
+    onboarding_complete BOOLEAN DEFAULT FALSE,
+    brand_dna_url TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

@@ -3,6 +3,16 @@ import { useUser as useClerkUser } from "@clerk/nextjs";
 export function useSafeUser() {
   const hasClerk = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   
+  // Always call the hook unconditionally to satisfy React's Rules of Hooks.
+  // useClerkUser() will throw if there's no ClerkProvider in the tree,
+  // so we wrap it in a try/catch for resilience.
+  let clerkResult: any = { isLoaded: true, isSignedIn: false, user: null };
+  try {
+    clerkResult = useClerkUser();
+  } catch (e) {
+    // Clerk not available (no ClerkProvider in tree)
+  }
+  
   if (!hasClerk) {
     return {
       isLoaded: true,
@@ -16,9 +26,5 @@ export function useSafeUser() {
     };
   }
 
-  try {
-    return useClerkUser();
-  } catch (e) {
-    return { isLoaded: true, isSignedIn: false, user: null };
-  }
+  return clerkResult;
 }

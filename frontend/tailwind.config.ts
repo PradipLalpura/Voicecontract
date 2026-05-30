@@ -16,6 +16,7 @@ const config: Config = {
         text: "#111827",       // Slate 900
         "text-muted": "#6B7280", // Slate 500
         border: "#E5E7EB",     // Slate 200
+        accent: "#00C2CC",     // Teal Accent
       },
       fontFamily: {
         sans: ["Inter", "sans-serif"],

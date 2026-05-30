@@ -1,0 +1,9 @@
+[     168ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:186
+[     935ms] [LOG] [Fast Refresh] done in 768ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:43
+[    1194ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom.development.js:38559
+[    1629ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ https://rapid-anemone-57.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js:18
+[    2121ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:186
+[    2604ms] [LOG] [Fast Refresh] done in 483ms @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:43
+[   90554ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8000/api/users/onboard:0
+[   90555ms] [ERROR] Onboarding failed: Error: Failed to save profile to database.
+    at handleComplete (webpack-internal:///(app-pages-browser)/./app/onboarding/page.tsx:77:23) @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/client/app-index.js:32

@@ -1,0 +1,52 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e79]:
+      - generic [ref=e80]:
+        - generic [ref=e81] [cursor=pointer]:
+          - generic [ref=e83]: V
+          - heading "VOICECONTRACT" [level=2] [ref=e84]
+        - generic [ref=e85]:
+          - button "Vault_Settings" [ref=e86] [cursor=pointer]
+          - button "Open user menu" [ref=e89] [cursor=pointer]:
+            - img "pradip lalpura's logo" [ref=e92]
+      - main [ref=e94]:
+        - generic [ref=e96]:
+          - heading "Command_Center" [level=1] [ref=e97]
+          - paragraph [ref=e98]: Select your ingestion method below.
+        - generic [ref=e99]:
+          - button "Start_Live Meeting Real-time legal interception & drafting" [ref=e100] [cursor=pointer]:
+            - generic [ref=e102]:
+              - img [ref=e104]
+              - generic [ref=e106]:
+                - heading "Start_Live Meeting" [level=3] [ref=e107]:
+                  - text: Start_Live
+                  - text: Meeting
+                - paragraph [ref=e108]: Real-time legal interception & drafting
+          - button "Upload_Call Recording Process pre-recorded audio via AI Vault" [ref=e109] [cursor=pointer]:
+            - generic [ref=e111]:
+              - img [ref=e113]
+              - generic [ref=e115]:
+                - heading "Upload_Call Recording" [level=3] [ref=e116]:
+                  - text: Upload_Call
+                  - text: Recording
+                - paragraph [ref=e117]: Process pre-recorded audio via AI Vault
+        - generic [ref=e118]:
+          - generic [ref=e119]:
+            - generic [ref=e120]:
+              - text: Secure_Ledger
+              - heading "Meeting_Memory" [level=3] [ref=e121]
+            - generic [ref=e125]: "Active: 0"
+          - table [ref=e127]:
+            - rowgroup [ref=e128]:
+              - row "Engagement / Entity Generated_Assets Vault_Status Date Action" [ref=e129]:
+                - columnheader "Engagement / Entity" [ref=e130]
+                - columnheader "Generated_Assets" [ref=e131]
+                - columnheader "Vault_Status" [ref=e132]
+                - columnheader "Date" [ref=e133]
+                - columnheader "Action" [ref=e134]
+            - rowgroup [ref=e135]:
+              - row "No meetings processed. Initializing your account." [ref=e136]:
+                - cell "No meetings processed. Initializing your account." [ref=e137]
+    - button [ref=e4] [cursor=pointer]:
+      - img [ref=e6]
+  - alert [ref=e8]

@@ -1,0 +1,24 @@
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - generic [ref=e12]: V
+        - heading "VoiceContract" [level=2] [ref=e13]
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - generic [ref=e18]: Genesis_Configuration
+            - heading "Identity_Setup" [level=2] [ref=e19]
+          - generic [ref=e20]:
+            - generic [ref=e21]: Phase
+            - generic [ref=e22]: 02/04
+        - generic [ref=e42]:
+          - generic [ref=e43]: Registered Office Address
+          - textbox "Enter full legal address for contract generation..." [ref=e44]
+        - generic [ref=e38]:
+          - button "Back" [ref=e45] [cursor=pointer]
+          - button "Continue_Sequence" [active] [ref=e39] [cursor=pointer]
+      - generic [ref=e40]: Secure_Genesis_01
+    - button [ref=e4] [cursor=pointer]:
+      - img [ref=e6]
+  - alert [ref=e8]

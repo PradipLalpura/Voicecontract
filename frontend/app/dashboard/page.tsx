@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { UserButton, useUser, useAuth } from "@clerk/nextjs";
@@ -26,6 +26,7 @@ export default function Dashboard() {
   
   // Pre-Flight Modal State
   const [showPreFlight, setShowPreFlight] = useState(false);
+  const [ingestionMode, setIngestionMode] = useState<"live" | "upload">("live");
   const [clientName, setClientName] = useState("");
   const [clientCompany, setClientCompany] = useState("");
   const [clientAddress, setClientAddress] = useState("");
@@ -36,9 +37,26 @@ export default function Dashboard() {
   const [docPo, setDocPo] = useState(false);
   const [enableCoach, setEnableCoach] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
-  
-  // Logo Upload State
-  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [startError, setStartError] = useState("");
+
+  const openPreFlight = (mode: "live" | "upload") => {
+    setIngestionMode(mode);
+    setClientName("");
+    setClientCompany("");
+    setClientAddress("");
+    setClientEmail("");
+    setClientWhatsApp("");
+    setDocMsa(true);
+    setDocInvoice(true);
+    setDocPo(false);
+    setEnableCoach(false);
+    setIsStarting(false);
+    setStartError("");
+    setShowPreFlight(true);
+  };
+
+  // Hidden audio input ref
+  const audioInputRef = useRef<HTMLInputElement>(null);
 
   // Safe Auth Detection
   const hasClerk = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -56,6 +74,26 @@ export default function Dashboard() {
       if (hasClerk && user && !metaOnboarding && !localOnboarding) {
         router.push('/onboarding');
         return;
+      }
+
+      // Verify onboarding via server-side profile
+      try {
+        const profileToken = hasClerk ? await getToken() : "dev_token";
+        const profileRes = await fetch(`${apiUrl}/api/users/me`, {
+          headers: {
+            "Content-Type": "application/json",
+            ...(profileToken ? { Authorization: `Bearer ${profileToken}` } : {})
+          }
+        });
+        if (profileRes.ok) {
+          const profile = await profileRes.json();
+          if (!profile.company_name) {
+            router.push('/onboarding');
+            return;
+          }
+        }
+      } catch (profileErr) {
+        console.error("Profile fetch failed:", profileErr);
       }
 
       // Fetch Real Deals
@@ -90,14 +128,16 @@ export default function Dashboard() {
     e.preventDefault();
     if (!clientName || !clientCompany) return;
     
+    if (ingestionMode === "upload") {
+       audioInputRef.current?.click();
+       return;
+    }
+
     setIsStarting(true);
+    setStartError("");
     try {
       const token = hasClerk ? await getToken() : "dev_token";
       
-      // We would normally upload the logoFile here to Supabase Storage and get a URL back.
-      // For this phase, we bypass the actual upload and just pass a placeholder if a file exists.
-      const logoUrl = logoFile ? "uploaded_logo_placeholder" : "";
-
       const res = await fetch(`${apiUrl}/api/dashboard/deals/draft`, {
         method: "POST",
         headers: {
@@ -110,18 +150,82 @@ export default function Dashboard() {
           client_address: clientAddress,
           client_email: clientEmail,
           client_whatsapp: clientWhatsapp,
-          client_logo: logoUrl,
           documents: { msa: docMsa, invoice: docInvoice, po: docPo },
           use_coach: enableCoach
         })
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        router.push(`/cockpit?session=${data.id}`);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ detail: "Server error" }));
+        throw new Error(errorData.detail || `HTTP ${res.status}`);
       }
-    } catch (error) {
-      console.error(error);
+
+      const data = await res.json();
+      if (!data.id) {
+        throw new Error("No session ID returned from server");
+      }
+
+      setShowPreFlight(false);
+      router.push(`/cockpit?session=${data.id}`);
+    } catch (error: any) {
+      console.error("Meeting start failed:", error);
+      setStartError(error.message || "Failed to start meeting. Check your connection.");
+    } finally {
+      setIsStarting(false);
+    }
+  };
+
+  const handleAudioSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsStarting(true);
+    setStartError("");
+    try {
+      const token = hasClerk ? await getToken() : "dev_token";
+
+      // Create a draft deal first
+      const draftRes = await fetch(`${apiUrl}/api/dashboard/deals/draft`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          client_name: clientName,
+          client_company: clientCompany,
+          client_address: clientAddress,
+          client_email: clientEmail,
+          client_whatsapp: clientWhatsapp,
+          documents: { msa: docMsa, invoice: docInvoice, po: docPo },
+          use_coach: false
+        })
+      });
+
+      if (!draftRes.ok) throw new Error("Failed to create session");
+      const draftData = await draftRes.json();
+
+      // Upload the audio file
+      const formData = new FormData();
+      formData.append("audio", file);
+      formData.append("session_id", draftData.id);
+
+      const uploadRes = await fetch(`${apiUrl}/api/upload/recording`, {
+        method: "POST",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: formData
+      });
+
+      if (!uploadRes.ok) throw new Error("Failed to upload recording");
+
+      setShowPreFlight(false);
+      router.push(`/processing?session=${draftData.id}`);
+    } catch (error: any) {
+      console.error("Upload failed:", error);
+      setStartError(error.message || "Upload failed");
+    } finally {
       setIsStarting(false);
     }
   };
@@ -184,14 +288,20 @@ export default function Dashboard() {
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Client Logo (For Contract Branding)</label>
-                    <div className="flex items-center gap-4">
-                       <label className="flex-1 flex flex-col items-center justify-center h-14 bg-background border-2 border-dashed border-border hover:border-primary/50 rounded-2xl cursor-pointer transition-colors">
-                          <span className="text-xs font-bold text-text-muted uppercase tracking-wider">{logoFile ? logoFile.name.substring(0, 15) + '...' : 'Browse File...'}</span>
-                          <input type="file" className="hidden" accept="image/*" onChange={e => setLogoFile(e.target.files?.[0] || null)} />
-                       </label>
-                       {logoFile && <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg></div>}
-                    </div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Client Email</label>
+                    <input 
+                      type="email" value={clientEmail} onChange={e => setClientEmail(e.target.value)}
+                      className="w-full bg-background border border-border rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-primary/40 font-bold"
+                      placeholder="client@company.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Client WhatsApp</label>
+                    <input 
+                      type="tel" value={clientWhatsapp} onChange={e => setClientWhatsApp(e.target.value)}
+                      className="w-full bg-background border border-border rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-primary/40 font-bold"
+                      placeholder="+91 98765 43210"
+                    />
                   </div>
                   
                   <div className="bg-background border border-border rounded-2xl p-6 space-y-4">
@@ -222,16 +332,31 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="md:col-span-2 pt-4">
+                <div className="md:col-span-2 pt-4 space-y-3">
                    <button type="submit" disabled={isStarting || (!docMsa && !docInvoice && !docPo)} className="w-full py-5 bg-text text-white rounded-3xl font-black uppercase tracking-[0.2em] shadow-xl hover:bg-black transition-all transform active:scale-95 disabled:opacity-50">
                      {isStarting ? "Initializing_Vault..." : "Start_Legal_Interception"}
                    </button>
+                   {startError && (
+                     <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-red-600 text-sm font-bold flex items-center gap-2">
+                       <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                       {startError}
+                     </div>
+                   )}
                 </div>
               </form>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
+      {/* Hidden audio file input for Upload mode (BRK-2 fix) */}
+      <input
+        ref={audioInputRef}
+        type="file"
+        accept="audio/*,.wav,.mp3,.m4a,.webm,.ogg"
+        className="hidden"
+        onChange={handleAudioSelected}
+      />
 
       {/* Designer Header */}
       <header className="sticky top-0 w-full h-24 bg-white/60 backdrop-blur-xl border-b border-border/50 flex items-center justify-between px-12 z-50">
@@ -267,7 +392,7 @@ export default function Dashboard() {
            {/* Action 1: Live */}
            <motion.button 
              whileHover={{ y: -5, scale: 1.02 }} whileTap={{ scale: 0.98 }}
-             onClick={() => setShowPreFlight(true)}
+             onClick={() => openPreFlight("live")}
              className="relative h-80 bg-text rounded-[48px] overflow-hidden group shadow-2xl border-4 border-white"
            >
               <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-transparent opacity-40 group-hover:opacity-60 transition-opacity" />
@@ -283,37 +408,22 @@ export default function Dashboard() {
            </motion.button>
 
            {/* Action 2: Upload */}
-           <div className="relative h-80">
-             <input
-                type="file"
-                accept="audio/*"
-                className="hidden"
-                id="upload-audio"
-                onChange={(e) => {
-                  if (e.target.files?.[0]) {
-                    alert("Uploading audio: " + e.target.files[0].name + " (Async processing started)");
-                    // Here we would call the backend to process the audio
-                    setTimeout(() => router.push(`/processing?session=upload-${Date.now()}`), 1000);
-                  }
-                }}
-             />
-             <motion.label 
-               htmlFor="upload-audio"
-               whileHover={{ y: -5, scale: 1.02 }} whileTap={{ scale: 0.98 }}
-               className="cursor-pointer block relative h-full bg-surface rounded-[48px] overflow-hidden group shadow-xl border border-border/50"
-             >
-                <div className="absolute inset-0 bg-slate-50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative z-10 h-full p-12 flex flex-col justify-between items-start text-left">
-                   <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/10">
-                      <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                   </div>
-                   <div>
-                      <h3 className="text-4xl font-black text-text tracking-tighter uppercase italic leading-none mb-4">Upload_Call<br/>Recording</h3>
-                      <p className="text-text-muted font-bold uppercase tracking-widest text-[10px]">Process pre-recorded audio via AI Vault</p>
-                   </div>
-                </div>
-             </motion.label>
-           </div>
+           <motion.button 
+             whileHover={{ y: -5, scale: 1.02 }} whileTap={{ scale: 0.98 }}
+             onClick={() => openPreFlight("upload")}
+             className="relative h-80 bg-surface rounded-[48px] overflow-hidden group shadow-xl border border-border/50 text-left"
+           >
+              <div className="absolute inset-0 bg-slate-50 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative z-10 h-full p-12 flex flex-col justify-between items-start text-left">
+                 <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/10">
+                    <svg className="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                 </div>
+                 <div>
+                    <h3 className="text-4xl font-black text-text tracking-tighter uppercase italic leading-none mb-4">Upload_Call<br/>Recording</h3>
+                    <p className="text-text-muted font-bold uppercase tracking-widest text-[10px]">Process pre-recorded audio via AI Vault</p>
+                 </div>
+              </div>
+           </motion.button>
         </div>
 
         {/* Meeting Ledger - Historical Memory */}
@@ -373,7 +483,7 @@ export default function Dashboard() {
                         {session.created_at}
                       </td>
                       <td className="px-12 py-8 text-right">
-                        <button className="px-6 py-2 border-2 border-text text-text rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-text hover:text-white transition-all opacity-0 group-hover:opacity-100">Audit_Assets</button>
+                        <button onClick={() => router.push(`/review/${session.id}`)} className="px-6 py-2 border-2 border-text text-text rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-text hover:text-white transition-all opacity-0 group-hover:opacity-100">Audit_Assets</button>
                       </td>
                     </tr>
                   ))

@@ -11,6 +11,7 @@ export default function OnboardingPage() {
   const { getToken } = useAuth();
   const { user, isLoaded } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   // Redirect if already onboarded
   useEffect(() => {
@@ -21,6 +22,7 @@ export default function OnboardingPage() {
 
   const handleComplete = async (data: any) => {
     setIsSubmitting(true);
+    setErrorMsg("");
     
     try {
       const token = await getToken();
@@ -37,6 +39,10 @@ export default function OnboardingPage() {
           company_name: data.company_name,
           gst_number: data.gst_number,
           address: data.address,
+          brand_accent: data.brand_accent,
+          template_strategy: data.template_strategy,
+          brand_dna_url: data.brand_dna_url || "",
+          existing_msa_filename: data.existing_msa_filename || "",
           onboarding_complete: true
         })
       });
@@ -63,12 +69,13 @@ export default function OnboardingPage() {
           router.push("/dashboard");
         }, 1000);
       } else {
-        throw new Error("Failed to save profile to database.");
+        const errBody = await res.json().catch(() => null);
+        throw new Error(errBody?.detail || "Failed to save profile to database.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Onboarding failed:", error);
       setIsSubmitting(false);
-      alert("System error during onboarding. Please try again.");
+      setErrorMsg(error?.message || "System error during onboarding. Please try again.");
     }
   };
 
@@ -98,6 +105,22 @@ export default function OnboardingPage() {
            )}
          </AnimatePresence>
          
+         {/* Inline Error Message — replaces alert() */}
+         <AnimatePresence>
+           {errorMsg && (
+             <motion.div
+               initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+               className="mb-4 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3"
+             >
+               <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+               <div className="flex-1">
+                 <p className="text-sm font-bold text-red-700">{errorMsg}</p>
+                 <button onClick={() => setErrorMsg("")} className="text-xs font-bold text-red-400 hover:text-red-600 mt-1 uppercase tracking-wider">Dismiss</button>
+               </div>
+             </motion.div>
+           )}
+         </AnimatePresence>
+
          <IdentityWizard onComplete={handleComplete} />
       </div>
 

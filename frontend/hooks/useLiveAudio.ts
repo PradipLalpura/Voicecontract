@@ -32,7 +32,7 @@ type LiveAudioEvent =
   | { type: "backpressure"; queue?: number }
   | { type: "error"; message: string }
   | { type: "stopped" }
-  | { type: "transcript"; text: string; full_transcript: string }
+  | { type: "transcript"; text: string; full_transcript: string; channel: number }
   | { type: "pulse"; kind: string; content: string; pillar?: string; value?: string; urgency?: string; source: string };
 
 type WorkletMessage =
@@ -333,7 +333,8 @@ export function useLiveAudio(options: LiveAudioOptions = {}) {
             const serverMessage = payload.detail || payload.code || "Capture server error";
             emit({ type: "error", message: String(serverMessage) });
           } else if (payload.type === "transcript") {
-            emit({ type: "transcript", text: String(payload.text), full_transcript: String(payload.text) });
+            const ch = payload.channel === "microphone" ? 1 : payload.channel === "system" ? 2 : 1;
+            emit({ type: "transcript", text: String(payload.text), full_transcript: String(payload.text), channel: ch });
           } else if (payload.type === "pulse" && payload.pulse) {
             const p = payload.pulse as any;
             emit({ 

@@ -1,0 +1,184 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5] [cursor=pointer]: VOICECONTRACT
+        - navigation [ref=e6]:
+          - button "The_Process" [ref=e7] [cursor=pointer]
+          - button "Intelligence" [ref=e8] [cursor=pointer]
+          - button "Enter_Vault" [ref=e77] [cursor=pointer]
+      - main [ref=e11]:
+        - generic [ref=e78]:
+          - generic [ref=e81]:
+            - generic:
+              - generic:
+                - generic: app.voicecontract.ai / interception
+              - generic:
+                - generic:
+                  - generic: Recording Active
+                - generic:
+                  - generic:
+                    - generic: Acme Corp Meeting
+                    - generic: Live
+                  - generic:
+                    - generic: "\"Yes, the deliverables include the 3D assets and source code. The total fee is $15,000 USD, paid upon completion.\""
+          - generic [ref=e83]:
+            - generic:
+              - generic:
+                - img
+              - generic: Active
+              - generic: Listening...
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic: VoiceContract Legal_AI
+                        - heading "Master_Agreement" [level=1]
+                      - generic: MINTED
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic: E-Sign Pending
+                        - generic: Provider_Signature
+                      - generic:
+                        - generic: Client_Signature
+        - generic:
+          - heading "Verbal Deals, Sealed." [level=1]:
+            - text: Verbal Deals,
+            - text: Sealed.
+          - paragraph: "FREELANCERS & AGENCIES: Stop losing revenue to unwritten scope. VoiceContract listens to your client meetings and mints structured, binding paperwork the moment you hang up."
+          - button "Start Your First Session" [ref=e85] [cursor=pointer]
+        - generic:
+          - generic:
+            - heading "The Gap is Gone." [level=2]
+            - paragraph: We built VoiceContract because "We discussed it" is a financial liability. Our agents audit your live conversations for missing clauses, reconcile pricing, and generate the Master Agreement while the call is still active.
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - generic [ref=e16]:
+            - text: The_Pipeline
+            - heading "Automated Integrity." [level=3] [ref=e17]:
+              - text: Automated
+              - text: Integrity.
+          - paragraph [ref=e18]: VoiceContract isn't a transcription tool. It's a legal logic engine that ensures you never leave a meeting without a confirmed paper trail.
+          - button "Get_Started" [ref=e19] [cursor=pointer]
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - generic [ref=e22]: "01"
+            - generic [ref=e23]:
+              - heading "Active Interception" [level=4] [ref=e24]
+              - paragraph [ref=e25]: Invite Amigo, our AI Auditor, to your Zoom or physical meeting. It listens for deliverables, timelines, and payment structures.
+          - generic [ref=e26]:
+            - generic [ref=e27]: "02"
+            - generic [ref=e28]:
+              - heading "Term Validation" [level=4] [ref=e29]
+              - paragraph [ref=e30]: If a critical term like 'IP Ownership' or 'Revision Limits' isn't mentioned, Amigo flags it live so you can address it immediately.
+          - generic [ref=e31]:
+            - generic [ref=e32]: "03"
+            - generic [ref=e33]:
+              - heading "Instant Minting" [level=4] [ref=e34]
+              - paragraph [ref=e35]: Before the call ends, your MSA, Invoice, and PO are generated in your exact company format, ready for review.
+          - generic [ref=e36]:
+            - generic [ref=e37]: "04"
+            - generic [ref=e38]:
+              - heading "Dual E-Sign" [level=4] [ref=e39]
+              - paragraph [ref=e40]: Documents are dispatched via Email and WhatsApp. Biometric vectors are captured to lock the PDF and then permanently deleted.
+      - generic [ref=e41]:
+        - heading "Core_Intelligence" [level=2] [ref=e42]
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - heading "Acoustic Logic" [level=3] [ref=e49]
+            - paragraph [ref=e50]: Captures intent and detects logical gaps in pricing and scope conversations in real-time.
+          - generic [ref=e51]:
+            - heading "Zero-Trust Vault" [level=3] [ref=e56]
+            - paragraph [ref=e57]: End-to-End Encryption ensures that your contracts are never readable by anyone—even us.
+          - generic [ref=e58]:
+            - heading "Unforgeable Sign" [level=3] [ref=e63]
+            - paragraph [ref=e64]: Biometric vectors generate a mathematical lock on your PDF. Zero storage architecture.
+      - generic [ref=e65]:
+        - generic [ref=e66]: VOICE_CONTRACT // ANTARIK_SYSTEMS
+        - generic [ref=e67]:
+          - generic [ref=e68]: Security_First
+          - generic [ref=e69]: Zero_Knowledge
+          - generic [ref=e70]: Legal_AI
+    - button [ref=e72] [cursor=pointer]:
+      - img [ref=e74]
+  - alert [ref=e76]
+  - dialog [ref=e90]:
+    - generic [ref=e150]:
+      - generic [ref=e151]:
+        - button "Close modal" [ref=e152] [cursor=pointer]:
+          - img [ref=e153]
+        - generic [ref=e156]:
+          - heading "Create your account" [level=1] [ref=e157]
+          - paragraph [ref=e158]: Welcome! Please fill in the details to get started.
+        - generic [ref=e159]:
+          - generic [ref=e161]:
+            - button "Sign in with GitHub GitHub" [disabled]:
+              - generic:
+                - generic:
+                  - img "Sign in with GitHub"
+                - generic: GitHub
+            - button "Sign in with Google Google" [disabled]:
+              - generic:
+                - generic:
+                  - img "Sign in with Google"
+                - generic: Google
+          - paragraph [ref=e174]: or
+          - generic [ref=e176]:
+            - generic [ref=e177]:
+              - generic [ref=e178]:
+                - generic [ref=e180]:
+                  - generic [ref=e181]:
+                    - generic: First name
+                    - generic: Optional
+                  - textbox "First name" [disabled]: pradip
+                - generic [ref=e187]:
+                  - generic [ref=e188]:
+                    - generic: Last name
+                    - generic: Optional
+                  - textbox "Last name" [disabled]: lalpura
+              - generic [ref=e195]:
+                - generic [ref=e196]:
+                  - generic: Username
+                - textbox "Username" [disabled]:
+                  - /placeholder: ""
+                  - text: Pradip1122
+              - generic [ref=e202]:
+                - generic [ref=e203]:
+                  - generic: Email address
+                - textbox "Email address" [disabled]:
+                  - /placeholder: Enter your email address
+                  - text: pradiplalpura1@gmail.com
+              - generic [ref=e208]:
+                - generic [ref=e209]:
+                  - generic [ref=e210]:
+                    - generic: Password
+                  - generic [ref=e212]:
+                    - textbox "Password" [disabled]:
+                      - /placeholder: Enter your password
+                      - text: Pradip111222
+                    - button "Show password" [ref=e214] [cursor=pointer]:
+                      - img [ref=e215]
+                - generic [ref=e218]: Your password meets all the necessary requirements.
+                - paragraph [ref=e242]:
+                  - img [ref=e243]
+                  - text: Your password meets all the necessary requirements.
+            - generic [ref=e220]:
+              - button "Loading" [disabled]:
+                - generic:
+                  - generic "Loading"
+      - generic [ref=e225]:
+        - generic [ref=e226]:
+          - generic [ref=e227]: Already have an account?
+          - link "Sign in" [ref=e228] [cursor=pointer]:
+            - /url: http://localhost:3000/CLERK-ROUTER/VIRTUAL/sign-in
+        - generic [ref=e230]:
+          - generic [ref=e232]:
+            - paragraph [ref=e233]: Secured by
+            - link "Clerk logo" [ref=e234] [cursor=pointer]:
+              - /url: https://go.clerk.com/components
+              - img [ref=e235]
+          - paragraph [ref=e240]: Development mode

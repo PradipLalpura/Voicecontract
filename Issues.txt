@@ -1,0 +1,18 @@
+brand dna capturing should at the login time for the user not the client. 
+
+the provided screenshots have issues marked. 
+
+the hero page laptop , mobile and contract aren't fit properly. 
+
+make the slide upward and disappear while scrolling down (smooth animation) and when scroll up it should slide down. 
+
+still features are not working. 
+recording is not opening anything even after the details are filled. 
+
+the live page gets open but doesn't take any inputs. 
+
+the dual settings problem are still there showed in screenshot. 
+
+amigo is not working.
+
+more features not working. 

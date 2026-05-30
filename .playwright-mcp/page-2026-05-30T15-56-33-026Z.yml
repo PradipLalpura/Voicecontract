@@ -1,0 +1,35 @@
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - generic [ref=e12]: V
+        - heading "VoiceContract" [level=2] [ref=e13]
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - generic [ref=e18]: Genesis_Configuration
+            - heading "Identity_Setup" [level=2] [ref=e19]
+          - generic [ref=e20]:
+            - generic [ref=e21]: Phase
+            - generic [ref=e22]: 03/04
+        - generic [ref=e47]:
+          - 'button "AI_Generate Let our legal agents construct a custom template based on your brand DNA. Upload Brand DNA Optional: PDF/DOCX of past work so AI learns your tone." [active] [ref=e48] [cursor=pointer]':
+            - img [ref=e50]
+            - heading "AI_Generate" [level=4] [ref=e52]
+            - paragraph [ref=e53]: Let our legal agents construct a custom template based on your brand DNA.
+            - generic [ref=e55]:
+              - generic [ref=e56]: Upload Brand DNA
+              - generic [ref=e57]:
+                - text: "Optional: PDF/DOCX of past work"
+                - text: so AI learns your tone.
+          - button "Extract_Existing Upload your current MSA (PDF/DOCX) for AI logic mapping." [ref=e58] [cursor=pointer]:
+            - img [ref=e60]
+            - heading "Extract_Existing" [level=4] [ref=e62]
+            - paragraph [ref=e63]: Upload your current MSA (PDF/DOCX) for AI logic mapping.
+        - generic [ref=e38]:
+          - button "Back" [ref=e45] [cursor=pointer]
+          - button "Continue_Sequence" [ref=e39] [cursor=pointer]
+      - generic [ref=e40]: Secure_Genesis_01
+    - button [ref=e4] [cursor=pointer]:
+      - img [ref=e6]
+  - alert [ref=e8]

@@ -47,3 +47,54 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: theme('colors.text-muted');
 }
+
+/* Shimmer effect for accents */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, transparent 30%, rgba(37,99,235,0.08) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Gentle float for non-3D elements */
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+.float-gentle { animation: gentle-float 4s ease-in-out infinite; }
+
+/* Gradient text */
+.text-gradient {
+  background: linear-gradient(135deg, #2563EB 0%, #00C2CC 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Premium card glow border on hover */
+.card-glow { position: relative; }
+.card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(37,99,235,0.2), transparent 50%, rgba(0,194,204,0.2));
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: -1;
+}
+.card-glow:hover::before { opacity: 1; }
+
+/* Scroll-triggered fade-in utility */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}

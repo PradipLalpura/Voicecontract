@@ -2,11 +2,17 @@
 
 import { motion } from "framer-motion";
 
-export default function SuccessHandshake() {
+interface SuccessHandshakeProps {
+  onDownload: () => void;
+  onReturn: () => void;
+  trackingId?: string;
+}
+
+export default function SuccessHandshake({ onDownload, onReturn, trackingId }: SuccessHandshakeProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 glass-morphism rounded-[60px] border border-signal/20 shadow-2xl relative overflow-hidden">
-      {/* Playful Floating Glow */}
-      <div className="absolute inset-0 bg-signal/5 animate-pulse" />
+    <div className="flex flex-col items-center justify-center py-20 glass-morphism-light rounded-[60px] border border-border/50 shadow-2xl relative overflow-hidden">
+      {/* Pulsing glow */}
+      <div className="absolute inset-0 bg-accent/5 animate-pulse" />
       
       <div className="relative w-48 h-48 mb-12">
         {/* Pulsing Aura */}
@@ -14,11 +20,11 @@ export default function SuccessHandshake() {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1.3, opacity: 1 }}
           transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
-          className="absolute inset-0 bg-signal/10 rounded-full blur-3xl"
+          className="absolute inset-0 bg-accent/10 rounded-full blur-3xl"
         />
         
         {/* Handshake Path Animation */}
-        <svg viewBox="0 0 24 24" className="w-full h-full text-signal relative z-10 filter drop-shadow-[0_0_15px_rgba(0,194,204,0.5)]" fill="none" stroke="currentColor">
+        <svg viewBox="0 0 24 24" className="w-full h-full text-accent relative z-10 filter drop-shadow-[0_0_15px_rgba(0,194,204,0.5)]" fill="none" stroke="currentColor">
           <motion.path 
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
@@ -36,10 +42,17 @@ export default function SuccessHandshake() {
         transition={{ delay: 1.5, duration: 1 }}
         className="text-center px-12 z-10"
       >
-        <h2 className="text-4xl font-display text-text mb-4 tracking-tighter italic">Protocol_Finalized</h2>
-        <p className="text-text/40 text-lg max-w-[380px] mx-auto leading-relaxed tracking-tight">
+        <h2 className="text-4xl font-black text-text mb-4 tracking-tighter italic">Protocol_Finalized</h2>
+        <p className="text-text-muted text-lg max-w-[380px] mx-auto leading-relaxed tracking-tight">
           The legal handshake has been cryptographically secured, timestamped, and dispatched across the Nexus.
         </p>
+
+        {trackingId && (
+          <div className="mt-6 px-4 py-2 bg-surface rounded-xl border border-border inline-flex items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Tracking:</span>
+            <span className="text-xs font-mono font-bold text-accent">{trackingId}</span>
+          </div>
+        )}
         
         <motion.div 
           initial={{ opacity: 0 }}
@@ -47,8 +60,18 @@ export default function SuccessHandshake() {
           transition={{ delay: 2.5 }}
           className="mt-12 flex justify-center gap-6"
         >
-          <button className="px-10 py-4 bg-text text-void rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] hover:bg-signal transition-all shadow-premium">Download_Package</button>
-          <button className="px-10 py-4 glass-morphism text-text/40 rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] hover:bg-white/5 transition-all">Return_to_Dashboard</button>
+          <button 
+            onClick={onDownload}
+            className="px-10 py-4 bg-text text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] hover:bg-black transition-all shadow-apple-lg active:scale-95"
+          >
+            Download_Package
+          </button>
+          <button 
+            onClick={onReturn}
+            className="px-10 py-4 bg-white/80 backdrop-blur-xl border border-border/50 text-text-muted rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] hover:bg-surface transition-all"
+          >
+            Return_to_Dashboard
+          </button>
         </motion.div>
       </motion.div>
     </div>

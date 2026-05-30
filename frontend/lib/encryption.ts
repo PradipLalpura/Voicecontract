@@ -11,7 +11,9 @@
 // we outline the structure of the edge decryption middleware.
 
 export async function decryptDocumentAtEdge(encryptedContent: string): Promise<string> {
-  const secret = process.env.CAPTURE_SHARED_SECRET || process.env.NEXT_PUBLIC_CAPTURE_SHARED_SECRET;
+  // Note: CAPTURE_SHARED_SECRET is server-side only (not exposed to browser).
+  // This function should only be called from Server Components or API routes.
+  const secret = process.env.CAPTURE_SHARED_SECRET;
   
   if (!secret) {
     console.warn("No shared secret found. Returning ciphertext.");

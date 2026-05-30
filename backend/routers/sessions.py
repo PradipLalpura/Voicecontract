@@ -81,21 +81,32 @@ def create_sessions_router(registry: LegalInputRegistry) -> APIRouter:
                 # 1. Encrypt the document payload
                 encrypted_msa = security_service.encrypt(docs_dict.get("msa", ""))
                 
-                # 2. Insert Deal
+                # 2. Build rich friction_summary with all pipeline outputs
+                import json as _json
+                friction_data = {
+                    "blueprint": docs_dict.get("blueprint", {}),
+                    "invoice_data": docs_dict.get("invoice", {}),
+                    "po_data": docs_dict.get("purchase_order", {}),
+                    "deal_audit": docs_dict.get("deal_audit", {}),
+                    "red_team_feedback": docs_dict.get("red_team_feedback", []),
+                    "revision_count": docs_dict.get("revision_count", 0),
+                }
+                
+                # 3. Insert Deal
                 deal_data = {
                     "user_id": user_id,
                     "session_id": session_id,
                     "client_name": identity.get("client", "Unknown Client"),
                     "total_value_inr": docs_dict.get("blueprint", {}).get("total_price_inr", 0),
                     "status": "drafted",
-                    "friction_summary": "Deal generated successfully."
+                    "friction_summary": _json.dumps(friction_data, ensure_ascii=False)
                 }
                 deal_response = supabase_admin.table("deals").insert(deal_data).execute()
                 
                 if deal_response.data:
                     deal_id = deal_response.data[0]["id"]
                     
-                    # 3. Insert Encrypted Document
+                    # 4. Insert Encrypted Document (MSA)
                     doc_data = {
                         "deal_id": deal_id,
                         "doc_type": "msa",
