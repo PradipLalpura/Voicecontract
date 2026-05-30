@@ -9,9 +9,15 @@ from datetime import datetime
 logger = logging.getLogger("voicecontract.dashboard")
 router = APIRouter(prefix="/api/dashboard", tags=["Dashboard"])
 
+class DocumentSelection(BaseModel):
+    msa: bool = True
+    invoice: bool = True
+    po: bool = False
+
 class DealCreateRequest(BaseModel):
     client_name: str
-    estimated_value_inr: float
+    client_logo: str = ""
+    documents: DocumentSelection
 
 class DealResponse(BaseModel):
     id: str
@@ -92,7 +98,7 @@ async def draft_new_deal(payload: DealCreateRequest, current_user: dict = Depend
         return DealResponse(
             id="dev-session-123",
             client_name=payload.client_name,
-            total_value_inr=payload.estimated_value_inr,
+            total_value_inr=0.0,
             status="drafted",
             created_at=datetime.utcnow().strftime("%b %d, %Y")
         )
@@ -105,7 +111,7 @@ async def draft_new_deal(payload: DealCreateRequest, current_user: dict = Depend
             "user_id": user_id,
             "session_id": session_id,
             "client_name": payload.client_name,
-            "total_value_inr": payload.estimated_value_inr,
+            "total_value_inr": 0.0, # Determined during meeting
             "status": "drafted"
         }
         res = supabase_admin.table("deals").insert(new_deal).execute()

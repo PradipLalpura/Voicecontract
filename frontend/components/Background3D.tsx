@@ -183,32 +183,37 @@ function GlowingContract(props: any) {
   );
 }
 
-function SineWaveStream({ start, end, color = "#2563EB", segments = 100 }: any) {
+function SineWaveStream({ start, end, baseColor = "#2563EB", segments = 150, frequency = 20, amplitude = 0.6, speed = 4, phaseOffset = 0 }: any) {
   const lineRef = useRef<any>(null);
   const points = useMemo(() => new Array(segments).fill(0).map(() => new THREE.Vector3()), [segments]);
 
   useFrame(({ clock }) => {
     if (!lineRef.current) return;
-    const time = clock.getElapsedTime() * 3; // Speed
+    const time = clock.getElapsedTime() * speed;
     
-    // Calculate bezier curve base path
+    // The curve bows upwards slightly
     const mid = start.clone().lerp(end, 0.5);
-    mid.y += 1.5; // Arc height
+    mid.y += 1.0; 
     
     for (let i = 0; i < segments; i++) {
       const t = i / (segments - 1);
-      // Quadratic Bezier interpolation
+      
+      // Base quadratic bezier curve
       const x = (1 - t) * (1 - t) * start.x + 2 * (1 - t) * t * mid.x + t * t * end.x;
-      let y = (1 - t) * (1 - t) * start.y + 2 * (1 - t) * t * mid.y + t * t * end.y;
+      const baseY = (1 - t) * (1 - t) * start.y + 2 * (1 - t) * t * mid.y + t * t * end.y;
       const z = (1 - t) * (1 - t) * start.z + 2 * (1 - t) * t * mid.z + t * t * end.z;
 
-      // Add Sine Wave Math for audio visualization
-      // Amplitude is highest in the middle (t=0.5) and tapers at ends
-      const envelope = Math.sin(t * Math.PI); 
-      const noise = Math.sin(t * 20 - time) * 0.4 * envelope;
-      const noise2 = Math.cos(t * 35 + time * 1.5) * 0.2 * envelope;
+      // Complex audio envelope (tapers at the ends, fat in the middle)
+      const envelope = Math.sin(t * Math.PI) ** 2; 
+      
+      // Multiple frequencies combined for a realistic voice wave look
+      const wave1 = Math.sin(t * frequency - time + phaseOffset);
+      const wave2 = Math.cos(t * (frequency * 1.5) + time * 1.2 + phaseOffset) * 0.5;
+      const wave3 = Math.sin(t * (frequency * 0.5) - time * 0.8 + phaseOffset) * 0.25;
+      
+      const combinedNoise = (wave1 + wave2 + wave3) * amplitude * envelope;
 
-      points[i].set(x, y + noise + noise2, z);
+      points[i].set(x, baseY + combinedNoise, z);
     }
     lineRef.current.setPoints(points);
   });
@@ -217,10 +222,10 @@ function SineWaveStream({ start, end, color = "#2563EB", segments = 100 }: any) 
     <Line
       ref={lineRef}
       points={points}
-      color={color}
-      lineWidth={4}
+      color={baseColor}
+      lineWidth={3}
       transparent
-      opacity={0.6}
+      opacity={0.8}
     />
   );
 }
@@ -233,23 +238,36 @@ function Scene() {
 
   useFrame(() => {
     const scrollY = window.scrollY;
-    // The main page has a pinned scroll trigger of 2000px
-    const progress = Math.min(Math.max(scrollY / 2000, 0), 1);
+    // The main page has a pinned scroll trigger of 2500px
+    const progress = Math.min(Math.max(scrollY / 2500, 0), 1);
     
     if (laptopRef.current && phoneRef.current && wavesRef.current && contractRef.current) {
-      // Stage 1: Devices are far apart and rotated
-      // Stage 2: Devices move to center, waves appear, contract scales up
-      laptopRef.current.position.x = THREE.MathUtils.lerp(-12, -5, progress);
-      phoneRef.current.position.x = THREE.MathUtils.lerp(12, 5, progress);
-      
-      laptopRef.current.rotation.y = THREE.MathUtils.lerp(-0.5, 0, progress);
-      phoneRef.current.rotation.y = THREE.MathUtils.lerp(0.5, 0, progress);
+      // Stage 1: Devices start WAY off-screen, completely free floating
+      // Stage 2: Devices move to center, framing the contract
+      // We use easeOut-like interpolation for smoother settling
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
 
-      // Waves appear half-way through the scroll
-      wavesRef.current.visible = progress > 0.4;
+      laptopRef.current.position.x = THREE.MathUtils.lerp(-18, -4.5, easeProgress);
+      laptopRef.current.position.y = THREE.MathUtils.lerp(5, -0.5, easeProgress);
+      laptopRef.current.position.z = THREE.MathUtils.lerp(-10, -2, easeProgress);
+
+      phoneRef.current.position.x = THREE.MathUtils.lerp(18, 4.5, easeProgress);
+      phoneRef.current.position.y = THREE.MathUtils.lerp(-5, -0.2, easeProgress);
+      phoneRef.current.position.z = THREE.MathUtils.lerp(10, 2, easeProgress);
       
-      // Contract materializes
-      const contractScale = progress > 0.6 ? THREE.MathUtils.lerp(0, 1, (progress - 0.6) * 2.5) : 0;
+      // Smoothly rotate to face the center
+      laptopRef.current.rotation.y = THREE.MathUtils.lerp(-0.8, 0.4, easeProgress);
+      laptopRef.current.rotation.x = THREE.MathUtils.lerp(0.2, 0.1, easeProgress);
+
+      phoneRef.current.rotation.y = THREE.MathUtils.lerp(0.8, -0.4, easeProgress);
+      phoneRef.current.rotation.x = THREE.MathUtils.lerp(-0.2, 0, easeProgress);
+
+      // Waves appear smoothly as devices converge
+      const waveOpacity = Math.max(0, (progress - 0.3) * 2);
+      wavesRef.current.visible = waveOpacity > 0;
+      
+      // Contract materializes in the center
+      const contractScale = progress > 0.5 ? THREE.MathUtils.lerp(0, 1, (progress - 0.5) * 2) : 0;
       contractRef.current.scale.set(contractScale, contractScale, contractScale);
     }
   });
@@ -262,28 +280,32 @@ function Scene() {
       <directionalLight position={[-10, 10, -5]} intensity={1} color="#2563EB" />
 
       {/* The Devices */}
-      <group ref={laptopRef} position={[-12, -1, -2]}>
+      <group ref={laptopRef}>
         <Float speed={2} rotationIntensity={0.1} floatIntensity={0.5}>
-          <RealisticLaptop rotation={[0, 0.6, 0]} />
+          <RealisticLaptop />
         </Float>
       </group>
 
-      <group ref={phoneRef} position={[12, -0.5, 2]}>
+      <group ref={phoneRef}>
         <Float speed={2.5} rotationIntensity={0.2} floatIntensity={0.8}>
-          <RealisticPhone rotation={[0, -0.6, 0]} />
+          <RealisticPhone />
         </Float>
       </group>
 
       {/* The Central Document */}
-      <group ref={contractRef} position={[0, 1, 0]} scale={0}>
+      <group ref={contractRef} position={[0, 1.2, 0]}>
         <GlowingContract />
       </group>
 
       {/* The Dynamic Audio Waves connecting them */}
       <group ref={wavesRef} visible={false}>
-        <SineWaveStream start={new THREE.Vector3(5, -0.5, 2)} end={new THREE.Vector3(0, 1, 0)} color="#2563EB" />
-        <SineWaveStream start={new THREE.Vector3(5, -0.5, 2)} end={new THREE.Vector3(0, 1, 0)} color="#00C2CC" />
-        <SineWaveStream start={new THREE.Vector3(-5, -1, -2)} end={new THREE.Vector3(0, 1, 0)} color="#2563EB" />
+        {/* Bundled waves for a thick, glowing, realistic frequency look */}
+        <SineWaveStream start={new THREE.Vector3(4.5, -0.2, 2)} end={new THREE.Vector3(0, 1.2, 0)} baseColor="#2563EB" amplitude={0.8} phaseOffset={0} />
+        <SineWaveStream start={new THREE.Vector3(4.5, -0.2, 2)} end={new THREE.Vector3(0, 1.2, 0)} baseColor="#60A5FA" amplitude={0.4} phaseOffset={2} speed={5} />
+        <SineWaveStream start={new THREE.Vector3(4.5, -0.2, 2)} end={new THREE.Vector3(0, 1.2, 0)} baseColor="#93C5FD" amplitude={0.2} phaseOffset={4} speed={6} />
+        
+        <SineWaveStream start={new THREE.Vector3(-4.5, -0.5, -2)} end={new THREE.Vector3(0, 1.2, 0)} baseColor="#2563EB" amplitude={0.8} phaseOffset={1} />
+        <SineWaveStream start={new THREE.Vector3(-4.5, -0.5, -2)} end={new THREE.Vector3(0, 1.2, 0)} baseColor="#60A5FA" amplitude={0.5} phaseOffset={3} speed={4.5} />
       </group>
 
       <ContactShadows position={[0, -3, 0]} opacity={0.3} scale={20} blur={2} far={4} />

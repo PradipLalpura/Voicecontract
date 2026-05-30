@@ -34,7 +34,10 @@ export default function Dashboard() {
   // Pre-Flight Modal State
   const [showPreFlight, setShowPreFlight] = useState(false);
   const [clientName, setClientName] = useState("");
-  const [estimatedValue, setEstimatedValue] = useState("");
+  const [clientLogo, setClientLogo] = useState("");
+  const [docMsa, setDocMsa] = useState(true);
+  const [docInvoice, setDocInvoice] = useState(true);
+  const [docPo, setDocPo] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
 
   // Safe Auth Detection
@@ -80,7 +83,11 @@ export default function Dashboard() {
 
   const handleStartMeeting = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientName || !estimatedValue) return;
+    if (!clientName) return;
+    if (!docMsa && !docInvoice && !docPo) {
+      alert("Please select at least one document to generate.");
+      return;
+    }
     
     setIsStarting(true);
     try {
@@ -93,13 +100,17 @@ export default function Dashboard() {
         },
         body: JSON.stringify({
           client_name: clientName,
-          estimated_value_inr: parseFloat(estimatedValue)
+          client_logo: clientLogo,
+          documents: {
+            msa: docMsa,
+            invoice: docInvoice,
+            po: docPo
+          }
         })
       });
 
       if (res.ok) {
         const data = await res.json();
-        // Route to cockpit with the secure session ID
         router.push(`/cockpit?session=${data.id}`);
       } else {
         throw new Error("Failed to create draft deal");
@@ -138,12 +149,12 @@ export default function Dashboard() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative bg-surface w-full max-w-md rounded-3xl p-8 shadow-apple-lg border border-border"
             >
-              <h2 className="text-2xl font-bold tracking-tight mb-2">New Meeting</h2>
-              <p className="text-text-muted text-sm mb-8">Enter the client details to initialize the VoiceContract secure enclave.</p>
+              <h2 className="text-2xl font-bold tracking-tight mb-2">Configure Session</h2>
+              <p className="text-text-muted text-sm mb-8">Enter client details and select the documents the AI should mint.</p>
               
               <form onSubmit={handleStartMeeting} className="space-y-6">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-text-muted mb-2">Client Entity Name</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-text-muted mb-2">Client Entity Name *</label>
                   <input 
                     type="text" required value={clientName} onChange={e => setClientName(e.target.value)}
                     className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 transition-all"
@@ -151,12 +162,29 @@ export default function Dashboard() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-text-muted mb-2">Estimated Value (INR)</label>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-text-muted mb-2">Client Logo URL (Optional)</label>
                   <input 
-                    type="number" required min="0" value={estimatedValue} onChange={e => setEstimatedValue(e.target.value)}
+                    type="url" value={clientLogo} onChange={e => setClientLogo(e.target.value)}
                     className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                    placeholder="e.g. 500000"
+                    placeholder="https://example.com/logo.png"
                   />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-text-muted mb-3">Required Documents</label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={docMsa} onChange={e => setDocMsa(e.target.checked)} className="w-4 h-4 text-primary rounded focus:ring-primary" />
+                      <span className="text-sm font-medium">MSA</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={docInvoice} onChange={e => setDocInvoice(e.target.checked)} className="w-4 h-4 text-primary rounded focus:ring-primary" />
+                      <span className="text-sm font-medium">Invoice</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={docPo} onChange={e => setDocPo(e.target.checked)} className="w-4 h-4 text-primary rounded focus:ring-primary" />
+                      <span className="text-sm font-medium">PO</span>
+                    </label>
+                  </div>
                 </div>
                 <div className="pt-4 flex gap-4">
                   <button type="button" onClick={() => setShowPreFlight(false)} className="flex-1 py-3 px-4 rounded-xl font-semibold text-text-muted hover:bg-background transition-colors">Cancel</button>
