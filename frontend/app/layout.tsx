@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from '@clerk/nextjs'
 import "./globals.css";
+import VoiceAssistantOrb from "@/components/VoiceAssistantOrb";
 
 export const metadata: Metadata = {
-  title: "VoiceContract | Awwwards-Winning 3D Legal Nexus",
-  description: "The world's most immersive autonomous legal department.",
+  title: "VoiceContract | Autonomous Legal Engine",
+  description: "Transform your conversations into boardroom-ready contracts in real-time.",
 };
 
 const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -18,9 +19,10 @@ export default function RootLayout({
   if (!clerkKey) {
     return (
       <html lang="en">
-        <body className="bureau-grid selection:bg-signal/30 text-white bg-void">
+        <body className="selection:bg-primary/30 text-text bg-background">
           <main className="min-h-screen">
             {children}
+            <VoiceAssistantOrb />
           </main>
         </body>
       </html>
@@ -35,18 +37,19 @@ export default function RootLayout({
           logoPlacement: 'inside',
         },
         variables: {
-          colorPrimary: '#00C2CC',
-          colorBackground: '#0D0D0D',
-          colorText: '#FFFFFF',
-          colorInputBackground: '#1A1A1A',
-          colorInputText: '#FFFFFF',
+          colorPrimary: '#2563EB',
+          colorBackground: '#FFFFFF',
+          colorText: '#111827',
+          colorInputBackground: '#F9FAFB',
+          colorInputText: '#111827',
         }
       }}
     >
       <html lang="en">
-        <body className="bureau-grid selection:bg-signal/30 text-white bg-void">
+        <body className="selection:bg-primary/30 text-text bg-background">
           <main className="min-h-screen">
             {children}
+            <VoiceAssistantOrb />
           </main>
         </body>
       </html>

@@ -174,6 +174,12 @@ export default function Dashboard() {
         
         <div className="flex items-center gap-6">
            <button 
+             onClick={() => router.push('/settings')}
+             className="text-text-muted hover:text-text transition-colors font-medium text-sm"
+           >
+             Settings
+           </button>
+           <button 
              onClick={() => setShowPreFlight(true)}
              className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-text text-white rounded-full font-medium text-sm hover:bg-black transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
            >
