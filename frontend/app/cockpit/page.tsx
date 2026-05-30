@@ -1,22 +1,62 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback, Suspense } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLiveAudio } from "@/hooks/useLiveAudio";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+
+interface TermRequirement {
+  id: string;
+  label: string;
+  keywords: string[];
+  status: 'pending' | 'detected' | 'confirmed';
+  value?: string;
+}
 
 export default function Cockpit() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session");
   const [transcript, setTranscript] = useState("");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
+  // Negotiation Coach State
+  const [coachAdvice, setCoachAdvice] = useState<string | null>(null);
+  
+  // Live Auditor Terms
+  const [terms, setTerms] = useState<TermRequirement[]>([
+    { id: 'scope', label: 'Scope of Work', keywords: ['deliver', 'provide', 'build', 'create', 'assets', 'design'], status: 'pending' },
+    { id: 'price', label: 'Total Consideration', keywords: ['rupees', 'inr', 'fee', 'cost', 'payment', 'price', 'thousand'], status: 'pending' },
+    { id: 'timeline', label: 'Delivery Timeline', keywords: ['deadline', 'weeks', 'days', 'friday', 'month', 'schedule'], status: 'pending' },
+    { id: 'revisions', label: 'Revision Policy', keywords: ['revisions', 'feedback', 'changes', 'rounds'], status: 'pending' },
+    { id: 'ip', label: 'IP Rights', keywords: ['intellectual property', 'ownership', 'copyright', 'transfer'], status: 'pending' },
+  ]);
+
   const handleEvent = useCallback((event: any) => {
     if (event.type === "transcript") {
+      const text = event.text.toLowerCase();
       setTranscript(prev => prev + " " + event.text);
+
+      // Simple keyword detection for the Live Auditor simulation
+      setTerms(prev => prev.map(term => {
+        if (term.status === 'pending' && term.keywords.some(k => text.includes(k))) {
+          return { ...term, status: 'detected' };
+        }
+        return term;
+      }));
+
+      // Random Coach Advice Simulation
+      if (text.includes("discount") || text.includes("cheap")) {
+        setCoachAdvice("⚠️ Pro Tip: Avoid discounting early. Emphasize value and ROI instead.");
+        setTimeout(() => setCoachAdvice(null), 8000);
+      } else if (text.includes("deliver")) {
+        setCoachAdvice("💡 Suggest a 50% advance before starting work.");
+        setTimeout(() => setCoachAdvice(null), 8000);
+      }
     }
   }, []);
 
-  const { start, stop, isCapturing, sessionId, status, error } = useLiveAudio({
+  const { start, stop, isCapturing, status, error } = useLiveAudio({
     enableSystemAudio: true,
     enableMicrophone: true,
     onEvent: handleEvent,
@@ -43,24 +83,16 @@ export default function Cockpit() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.beginPath();
       for (let i = 0; i < canvas.width; i++) {
-        // Smooth, soft waveform
-        const amplitude = isCapturing ? Math.sin(i * 0.02 + phase) * 60 : 2;
+        const amplitude = isCapturing ? Math.sin(i * 0.02 + phase) * 50 : 2;
         const y = (canvas.height / 2) + amplitude;
         if (i === 0) ctx.moveTo(i, y);
         else ctx.lineTo(i, y);
       }
-      ctx.strokeStyle = "#2563EB"; // Corporate Blue
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = isCapturing ? "#2563EB" : "#94a3b8";
+      ctx.lineWidth = 4;
       ctx.lineCap = "round";
       ctx.stroke();
-      
-      // Optional subtle fill
-      ctx.lineTo(canvas.width, canvas.height);
-      ctx.lineTo(0, canvas.height);
-      ctx.fillStyle = "rgba(37, 99, 235, 0.05)";
-      ctx.fill();
-
-      phase += 0.05;
+      phase += 0.08;
       animationId = requestAnimationFrame(draw);
     };
     draw();
@@ -68,65 +100,117 @@ export default function Cockpit() {
   }, [isCapturing]);
 
   return (
-    <div className="min-h-screen bg-background text-text font-sans flex flex-col premium-noise">
-      <header className="h-20 border-b border-border flex items-center justify-between px-8 bg-surface/80 backdrop-blur-xl z-50 shadow-sm">
-        <div className="flex items-center gap-6">
-           <button onClick={() => router.push('/dashboard')} className="text-text-muted hover:text-text transition-colors">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+    <div className="min-h-screen bg-background text-text font-sans flex flex-col premium-noise overflow-hidden">
+      
+      {/* Cockpit Header */}
+      <header className="h-24 border-b border-border flex items-center justify-between px-12 bg-white/60 backdrop-blur-xl z-50">
+        <div className="flex items-center gap-8">
+           <button onClick={() => router.push('/dashboard')} className="p-3 hover:bg-slate-100 rounded-full transition-colors text-text-muted">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
            </button>
-           <div className="font-bold text-lg tracking-tight">Active Meeting</div>
-           {isCapturing && (
-             <div className="flex items-center gap-2 px-3 py-1 bg-red-50 text-red-600 rounded-full text-xs font-semibold border border-red-100">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                Recording
-             </div>
-           )}
-           {error && (
-             <div className="flex items-center gap-2 px-3 py-1 bg-red-50 text-red-600 rounded-full text-xs font-semibold border border-red-200">
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                {error}
-             </div>
-           )}
+           <div className="space-y-1">
+              <h2 className="font-black text-xl tracking-tighter uppercase italic">Meeting_Interception</h2>
+              <div className="flex items-center gap-2">
+                 <div className={`w-2 h-2 rounded-full ${isCapturing ? 'bg-red-500 animate-pulse' : 'bg-slate-300'}`} />
+                 <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">{isCapturing ? 'Secure_Recording_Active' : 'Standby_Mode'}</span>
+              </div>
+           </div>
         </div>
+
         <div className="flex gap-4">
           {!isCapturing ? (
-            <button onClick={start} disabled={status === "connecting" || status === "requesting-permission"} className="px-6 py-2.5 bg-text text-white rounded-full font-semibold shadow-apple hover:bg-black transition-all disabled:opacity-50">
-              {status === "connecting" ? "Connecting..." : status === "requesting-permission" ? "Allow Mic..." : "Start Listening"}
+            <button onClick={start} disabled={status === "connecting" || status === "requesting-permission"} className="px-10 py-4 bg-text text-white rounded-full font-black uppercase tracking-widest text-xs shadow-xl hover:bg-black transition-all transform active:scale-95 disabled:opacity-50">
+              {status === "connecting" ? "Connecting..." : status === "requesting-permission" ? "Allow_Mic..." : "Start_Legal_Engine"}
             </button>
           ) : (
-            <button onClick={() => { stop(); router.push(`/processing?session=${sessionId}`); }} className="px-6 py-2.5 bg-primary text-white rounded-full font-semibold shadow-apple hover:bg-primary-hover transition-all">End & Draft Contract</button>
+            <button onClick={() => { stop(); router.push(`/processing?session=${sessionId}`); }} className="px-10 py-4 bg-primary text-white rounded-full font-black uppercase tracking-widest text-xs shadow-apple hover:bg-primary-hover transition-all transform active:scale-95">
+              Stop & Mint Documents
+            </button>
           )}
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center p-8 max-w-4xl w-full mx-auto">
+      <main className="flex-1 flex flex-col md:flex-row">
         
-        {/* Soft Waveform Visualizer */}
-        <div className="w-full h-64 mb-12 relative overflow-hidden rounded-3xl bg-surface border border-border shadow-apple-inner flex flex-col justify-end">
-           <canvas ref={canvasRef} width={1000} height={300} className="w-full h-full opacity-80" />
-           <div className="absolute top-6 left-8 text-sm font-semibold text-text-muted">Acoustic Feed</div>
+        {/* Left: Main Transcription & Waves */}
+        <div className="flex-1 flex flex-col p-12 gap-12 overflow-y-auto">
+           {/* High-Fidelity Visualizer */}
+           <div className="w-full h-80 bg-surface border border-border rounded-[40px] relative overflow-hidden shadow-inner flex flex-col justify-end p-8">
+              <canvas ref={canvasRef} width={1200} height={300} className="w-full h-full opacity-60" />
+              <div className="absolute top-8 left-10 flex flex-col">
+                 <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-1">Acoustic_Input</span>
+                 <span className="text-xs font-bold text-text-muted">48kHz / 256-bit E2EE</span>
+              </div>
+              
+              <AnimatePresence>
+                 {coachAdvice && (
+                   <motion.div 
+                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+                     className="absolute top-8 right-10 max-w-sm bg-blue-600 text-white p-6 rounded-3xl shadow-2xl border border-blue-400 font-bold text-sm leading-relaxed"
+                   >
+                     {coachAdvice}
+                   </motion.div>
+                 )}
+              </AnimatePresence>
+           </div>
+
+           {/* Live Transcription Feed */}
+           <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar">
+              <AnimatePresence mode="wait">
+                {transcript ? (
+                  <div className="space-y-8">
+                     <p className="text-4xl leading-[1.2] text-text font-black tracking-tighter uppercase italic">
+                       {transcript}
+                       <span className="inline-block w-4 h-10 bg-primary/30 ml-4 animate-pulse align-middle rounded-sm" />
+                     </p>
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center gap-6 text-text-muted opacity-30">
+                    <svg className="w-20 h-20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                    <span className="text-2xl font-black uppercase tracking-widest italic">Awaiting_Signal...</span>
+                  </div>
+                )}
+              </AnimatePresence>
+           </div>
         </div>
 
-        {/* Clean Transcription Area */}
-        <div className="w-full flex-1 max-h-[40vh] overflow-y-auto custom-scrollbar">
-           <AnimatePresence mode="wait">
-             {transcript ? (
-               <motion.p 
-                 initial={{ opacity: 0, y: 10 }}
-                 animate={{ opacity: 1, y: 0 }}
-                 className="text-3xl leading-relaxed text-text font-medium tracking-tight"
-               >
-                 {transcript}
-                 <span className="inline-block w-3 h-8 bg-primary/40 ml-3 animate-pulse align-middle rounded-sm" />
-               </motion.p>
-             ) : (
-               <div className="h-full flex flex-col items-center justify-center gap-4 text-text-muted opacity-50">
-                 <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
-                 <span className="text-lg font-medium">Ready when you are...</span>
-               </div>
-             )}
-           </AnimatePresence>
-        </div>
+        {/* Right: Live Auditor Panel */}
+        <aside className="w-96 bg-surface border-l border-border p-10 flex flex-col gap-10">
+           <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Live_Auditor</span>
+              <h3 className="text-2xl font-black tracking-tight uppercase italic">Term_Validation</h3>
+           </div>
+
+           <div className="flex-1 space-y-4">
+              {terms.map((term) => (
+                <div key={term.id} className={`p-6 rounded-3xl border transition-all duration-500 flex items-center justify-between ${
+                  term.status === 'detected' ? 'bg-green-50 border-green-200' : 'bg-background border-border opacity-60'
+                }`}>
+                   <div className="flex flex-col gap-1">
+                      <span className={`text-xs font-black uppercase tracking-widest ${term.status === 'detected' ? 'text-green-600' : 'text-text'}`}>{term.label}</span>
+                      <span className="text-[10px] font-medium text-text-muted">{term.status === 'detected' ? 'Logic Identified' : 'Awaiting Mention...'}</span>
+                   </div>
+                   {term.status === 'detected' ? (
+                     <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-green-200">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                     </div>
+                   ) : (
+                     <div className="w-8 h-8 bg-slate-100 rounded-full border-2 border-dashed border-slate-300" />
+                   )}
+                </div>
+              ))}
+           </div>
+
+           <div className="bg-red-50 border border-red-100 p-6 rounded-3xl">
+              <div className="flex items-start gap-4">
+                 <svg className="w-6 h-6 text-red-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                 <div className="space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-red-600">Risk_Alert</span>
+                    <p className="text-xs font-medium text-red-700 leading-relaxed">Ensure payment schedules are mentioned clearly to generate a valid GST Invoice.</p>
+                 </div>
+              </div>
+           </div>
+        </aside>
 
       </main>
     </div>

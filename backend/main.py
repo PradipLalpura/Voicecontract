@@ -47,6 +47,7 @@ try:
     from backend.routers.webhooks import router as webhooks_router
     from backend.routers.signature import router as signature_router
     from backend.routers.assistant import router as assistant_router
+    from backend.routers.users import router as users_router
 except ModuleNotFoundError:
     # Fallback for internal folder imports
     from agents.context_agent import Commitment, ContextAgent, ContextAgentError
@@ -58,6 +59,7 @@ except ModuleNotFoundError:
     from routers.webhooks import router as webhooks_router
     from routers.signature import router as signature_router
     from routers.assistant import router as assistant_router
+    from routers.users import router as users_router
 
 
 logger = logging.getLogger("voicecontract.capture")
@@ -299,6 +301,7 @@ app.include_router(dashboard_router)
 app.include_router(webhooks_router)
 app.include_router(signature_router)
 app.include_router(assistant_router)
+app.include_router(users_router)
 
 
 @app.on_event("startup")
