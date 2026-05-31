@@ -15,20 +15,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-
-  if (!clerkKey) {
-    return (
-      <html lang="en">
-        <body className="selection:bg-primary/30 text-text bg-background">
-          <main className="min-h-screen">
-            {children}
-            <ClientOrbWrapper />
-          </main>
-        </body>
-      </html>
-    );
-  }
+  const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_test_dummy_key_for_build_stability";
 
   return (
     <ClerkProvider
