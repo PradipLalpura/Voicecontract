@@ -4,3 +4,7 @@ node_modules/
 .next/
 
 ffmpeg.zip
+
+ffmpeg-master-latest-win64-gpl/
+ffmpeg.zip
+generate_video.py
