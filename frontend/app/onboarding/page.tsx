@@ -6,6 +6,8 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import IdentityWizard from "@/components/IdentityWizard";
 
+export const dynamic = "force-dynamic";
+
 export default function OnboardingPage() {
   const router = useRouter();
   const { getToken } = useAuth();

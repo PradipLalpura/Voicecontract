@@ -16,6 +16,8 @@ interface MeetingSession {
   created_at: string;
 }
 
+export const dynamic = "force-dynamic";
+
 export default function Dashboard() {
   const router = useRouter();
   const { user, isLoaded } = useUser();
