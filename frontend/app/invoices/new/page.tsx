@@ -43,6 +43,8 @@ function generateId() {
   return Math.random().toString(36).substring(2, 10);
 }
 
+export const dynamic = "force-dynamic";
+
 export default function NewInvoicePage() {
   const { getToken } = useAuth();
 
