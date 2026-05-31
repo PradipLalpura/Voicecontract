@@ -1,10 +1,12 @@
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
 // EMERGENCY BYPASS FOR VERCEL EDGE RUNTIME ERRORS
 // Clerk middleware is causing #crypto issues in Vercel Edge.
-// This file is simplified to allow the build to pass.
-// Auth is still handled within the layout and pages.
+// This simplified middleware allows the build to pass while maintaining routing.
 
-export default function middleware() {
-  return;
+export function middleware(request: NextRequest) {
+  return NextResponse.next();
 }
 
 export const config = {
