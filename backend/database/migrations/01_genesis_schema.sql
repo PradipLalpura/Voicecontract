@@ -12,6 +12,12 @@ CREATE TABLE IF NOT EXISTS public.users (
     address TEXT,
     onboarding_complete BOOLEAN DEFAULT FALSE,
     brand_dna_url TEXT,
+    brand_accent TEXT DEFAULT '#2563EB',
+    template_strategy TEXT DEFAULT 'generate',
+    existing_msa_filename TEXT DEFAULT '',
+    selected_msa_template TEXT,
+    selected_po_template TEXT,
+    selected_invoice_template TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

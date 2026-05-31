@@ -154,7 +154,7 @@ def _parse_analysis(content: str) -> ContextAnalysis:
         confidence = _clamp_float(item.get("confidence", 0), 0, 1)
         value = str(item.get("value", "")).strip()
         evidence = str(item.get("evidence", "")).strip()
-        if legal_weight != "firm" or confidence < 0.74 or not value or not evidence:
+        if legal_weight != "firm" or confidence < 0.65 or not value or not evidence:
             continue
 
         commitment_type = str(item.get("type", "other")).lower()
@@ -222,6 +222,12 @@ Return only a JSON object:
   "ignored_banter": ["short notes on phrases ignored as non-binding"],
   "summary": "one-sentence summary of newly firm terms"
 }
+
+Multilingual Commitment Detection:
+- Hindi commitment phrases: 'ho jayega' (it will happen), 'pakka hai' (confirmed), 'karna padega' (must do), 'bhej denge' (will send), 'GST alag se' (GST separate), 'advance de do' (give advance), 'kaam karna hai' (work to do)
+- Gujarati commitment phrases: 'thase' (will happen), 'karvu padse' (must do), 'final che' (it's final), 'barabar che' (it's correct), 'advance aapjo' (give advance), 'rupiya' (rupees), 'mahine' (months)
+- Hinglish mixed: 'source code deliver kar denge' (will deliver source code), 'payment advance mein' (payment in advance), 'invoice bhej do' (send invoice)
+- Treat all languages equally. A commitment in Gujarati is as valid as one in English.
 
 Rules:
 - Prefer no commitments over false commitments.

@@ -4,9 +4,14 @@ import json
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Dict, Any
 from pydantic import BaseModel
-from backend.auth.jwt_auth import verify_token
-from backend.database.client import supabase_admin
-from backend.utils.encryption import security_service
+try:
+    from backend.auth.jwt_auth import verify_token
+    from backend.database.client import supabase_admin
+    from backend.utils.encryption import security_service
+except ModuleNotFoundError:
+    from auth.jwt_auth import verify_token
+    from database.client import supabase_admin
+    from utils.encryption import security_service
 from datetime import datetime
 
 logger = logging.getLogger("voicecontract.dashboard")
@@ -23,6 +28,7 @@ class DealCreateRequest(BaseModel):
     client_address: str = ""
     client_email: str = ""
     client_whatsapp: str = ""
+    client_logo: str = ""
     documents: DocumentSelection
     use_coach: bool = False
 
@@ -169,33 +175,45 @@ async def get_deal_detail(session_id: str, current_user: dict = Depends(verify_t
             msa_text = "Document decryption failed. Please regenerate."
 
         # 4. Build invoice text from structured data
-        inv_items = invoice_data.get("items", [])
-        inv_lines = ["TAX INVOICE", ""]
-        inv_lines.append(f"Invoice #: INV-{session_id[:8].upper()}")
-        inv_lines.append(f"Date: {datetime.utcnow().strftime('%B %d, %Y')}")
-        inv_lines.append(f"To: {deal.get('client_name', 'Client')}")
-        inv_lines.append("")
-        for item in inv_items:
-            inv_lines.append(f"Description: {item.get('description', 'Professional Services')}")
-            inv_lines.append(f"Amount: \u20b9{item.get('amount', 0):,.2f}")
-        inv_lines.append("")
-        inv_lines.append(f"Subtotal: \u20b9{invoice_data.get('subtotal', 0):,.2f}")
-        inv_lines.append(f"IGST (18%): \u20b9{invoice_data.get('tax_igst_18', 0):,.2f}")
-        inv_lines.append(f"Grand Total: \u20b9{invoice_data.get('grand_total', 0):,.2f}")
-        invoice_text = "\n".join(inv_lines)
+        invoice_text = invoice_data.get("full_html", "")
+        # Get brand accent for styling
+        brand_accent = "#2563EB"
+        try:
+            u_res = supabase_admin.table("users").select("brand_accent").eq("id", user_id).single().execute()
+            if u_res.data:
+                brand_accent = u_res.data.get("brand_accent", "#2563EB")
+        except: pass
+
+        if not invoice_text:
+            inv_items = invoice_data.get("items", [])
+            inv_lines = [f"<h3 style='color: {brand_accent}'>TAX INVOICE</h3>", ""]
+            inv_lines.append(f"<p>Invoice #: INV-{session_id[:8].upper()}</p>")
+            inv_lines.append(f"<p>Date: {datetime.utcnow().strftime('%B %d, %Y')}</p>")
+            inv_lines.append(f"<p>To: {deal.get('client_name', 'Client')}</p>")
+            inv_lines.append("<br/>")
+            for item in inv_items:
+                inv_lines.append(f"<p><strong>Description:</strong> {item.get('description', 'Professional Services')}</p>")
+                inv_lines.append(f"<p><strong>Amount:</strong> \u20b9{item.get('amount', 0):,.2f}</p>")
+            inv_lines.append("<br/>")
+            inv_lines.append(f"<p><strong>Subtotal:</strong> \u20b9{invoice_data.get('subtotal', 0):,.2f}</p>")
+            inv_lines.append(f"<p><strong>IGST (18%):</strong> \u20b9{invoice_data.get('tax_igst_18', 0):,.2f}</p>")
+            inv_lines.append(f"<p style='font-size: 24px; color: {brand_accent};'><strong>Grand Total: \u20b9{invoice_data.get('grand_total', 0):,.2f}</strong></p>")
+            invoice_text = "".join(inv_lines)
 
         # 5. Build PO text from structured data
-        po_deliverables = po_data.get("deliverables", [])
-        po_lines = ["PURCHASE ORDER", ""]
-        po_lines.append(f"PO #: PO-{session_id[:8].upper()}")
-        po_lines.append(f"From: {deal.get('client_name', 'Client')}")
-        po_lines.append("")
-        po_lines.append("Deliverables:")
-        for d_item in po_deliverables:
-            po_lines.append(f"  - {d_item}")
-        po_lines.append("")
-        po_lines.append(f"Delivery Date: {po_data.get('delivery_date', 'As specified in MSA')}")
-        po_text = "\n".join(po_lines)
+        po_text = po_data.get("full_html", "")
+        if not po_text:
+            po_deliverables = po_data.get("deliverables", [])
+            po_lines = [f"<h3 style='color: {brand_accent}'>PURCHASE ORDER</h3>", ""]
+            po_lines.append(f"<p>PO #: PO-{session_id[:8].upper()}</p>")
+            po_lines.append(f"<p>From: {deal.get('client_name', 'Client')}</p>")
+            po_lines.append("<br/>")
+            po_lines.append("<p><strong>Deliverables:</strong></p><ul>")
+            for d_item in po_deliverables:
+                po_lines.append(f"<li>{d_item}</li>")
+            po_lines.append("</ul><br/>")
+            po_lines.append(f"<p><strong>Delivery Date:</strong> {po_data.get('delivery_date', 'As specified in MSA')}</p>")
+            po_text = "".join(po_lines)
 
         # 6. Build committed_terms from blueprint
         committed_terms = []
@@ -270,6 +288,7 @@ async def draft_new_deal(payload: DealCreateRequest, current_user: dict = Depend
             "user_id": user_id,
             "session_id": session_id,
             "client_name": payload.client_name,
+            "client_logo": payload.client_logo,
             "total_value_inr": 0.0,
             "status": "drafted",
             "friction_summary": json.dumps({
@@ -277,6 +296,7 @@ async def draft_new_deal(payload: DealCreateRequest, current_user: dict = Depend
                 "client_address": payload.client_address,
                 "client_email": payload.client_email,
                 "client_whatsapp": payload.client_whatsapp,
+                "client_logo": payload.client_logo,
                 "documents": payload.documents.dict(),
                 "use_coach": payload.use_coach
             })

@@ -56,7 +56,7 @@ class WhisperAgent:
         pcm: bytes,
         sample_rate: int,
         channels: int = 1,
-        language: str = "en",
+        language: str | None = None,
         prompt: str | None = None,
     ) -> TranscriptionResult:
         if not pcm:
@@ -71,6 +71,8 @@ class WhisperAgent:
         wav_bytes = _pcm16_to_wav(pcm=pcm, sample_rate=sample_rate, channels=channels)
         duration_seconds = len(pcm) / float(sample_rate * channels * 2)
 
+        _lang = language if language else ""
+
         last_error: Exception | None = None
         for attempt in range(self.max_retries + 1):
             try:
@@ -78,7 +80,7 @@ class WhisperAgent:
                 response = await self._client.audio.transcriptions.create(
                     model=self.model,
                     file=wav_file,
-                    language=language,
+                    language=_lang,
                     prompt=prompt or _default_prompt(),
                     response_format="json",
                     temperature=0,
@@ -103,6 +105,46 @@ class WhisperAgent:
         logger.exception("whisper_transcription_failed model=%s bytes=%s", self.model, len(pcm))
         raise TranscriptionError(f"Whisper transcription failed: {last_error}") from last_error
 
+    async def transcribe_file(
+        self, *, file_bytes: bytes, filename: str = "audio.wav",
+        language: str | None = None, prompt: str | None = None,
+    ) -> TranscriptionResult:
+        """Transcribe an uploaded audio file directly using Groq's high-speed endpoint."""
+        _prompt = prompt or _default_prompt()
+        _lang = language if language else ""
+        
+        if not self._client:
+            raise TranscriptionError("Groq client not initialized.")
+
+        for attempt in range(self.max_retries + 1):
+            try:
+                # Direct async call to the OpenAI/Groq client
+                response = await self._client.audio.transcriptions.create(
+                    model=self.model,
+                    file=(filename, file_bytes),
+                    language=_lang,
+                    prompt=_prompt,
+                    response_format="json",
+                    temperature=0,
+                )
+                text = str(getattr(response, "text", "") or "").strip()
+                logger.info(f"✅ Successfully transcribed {filename} ({len(file_bytes)} bytes)")
+                
+                return TranscriptionResult(
+                    text=_normalize_transcript(text),
+                    model=self.model,
+                    duration_seconds=0,
+                    language=getattr(response, "language", None),
+                )
+            except Exception as exc:
+                logger.error(f"Whisper file transcription attempt {attempt+1} failed: {exc}")
+                if attempt < self.max_retries:
+                    await asyncio.sleep(0.5 * (attempt + 1))
+                    continue
+                raise TranscriptionError(f"Transcribe file failed after {self.max_retries+1} attempts: {exc}")
+        
+        return TranscriptionResult(text="", model=self.model, duration_seconds=0)
+
 
 def _pcm16_to_wav(*, pcm: bytes, sample_rate: int, channels: int) -> bytes:
     buffer = io.BytesIO()
@@ -120,6 +162,14 @@ def _normalize_transcript(text: str) -> str:
 
 def _default_prompt() -> str:
     return (
-        "Indian business meeting audio with Hinglish, rupee amounts, timelines, deliverables, GST, retainers, "
-        "payment milestones, and commitment phrases such as done, pakka, lock it, final, chalo, ho jayega."
+        "Indian business meeting with multilingual speakers. "
+        "Languages: English, Hindi, Gujarati, Hinglish (code-switching). "
+        "Hindi terms: kaam karna hai, kitna lagega, ho jayega, pakka hai, "
+        "bhej denge, GST alag se, advance de do, payment karo, karna padega, "
+        "invoice bhejo, agreement banana hai, total kitna hua. "
+        "Gujarati terms: thase, karvu padse, paisa, rupiya, bhai saheb, "
+        "barabar che, final che, mahine, aapne, pan karavano che, aapjo. "
+        "Business terms: rupee amounts, lakh, crore, GST, IGST, CGST, SGST, "
+        "retainer, milestone, deliverable, timeline, revision, invoice, PO, MSA, "
+        "purchase order, master service agreement, scope of work."
     )

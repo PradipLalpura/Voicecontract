@@ -8,10 +8,16 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import Response
 from pydantic import BaseModel
-from backend.auth.jwt_auth import verify_token
-from backend.utils.encryption import security_service
-from backend.database.client import supabase_admin
-from backend.utils.pdf_generator import generate_locked_pdf
+try:
+    from backend.auth.jwt_auth import verify_token
+    from backend.utils.encryption import security_service
+    from backend.database.client import supabase_admin
+    from backend.utils.pdf_generator import generate_locked_pdf
+except ModuleNotFoundError:
+    from auth.jwt_auth import verify_token
+    from utils.encryption import security_service
+    from database.client import supabase_admin
+    from utils.pdf_generator import generate_locked_pdf
 
 logger = logging.getLogger("voicecontract.signature")
 router = APIRouter(prefix="/api/signature", tags=["Signature"])

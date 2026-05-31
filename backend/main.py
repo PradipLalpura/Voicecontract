@@ -49,6 +49,12 @@ try:
     from backend.routers.assistant import router as assistant_router
     from backend.routers.users import router as users_router
     from backend.routers.upload import router as upload_router
+    from backend.routers.client_sign import router as client_sign_router
+    from backend.routers.templates import router as templates_router
+    from backend.routers.brand import router as brand_router
+    from backend.routers.contracts import router as contracts_router
+    from backend.routers.invoices import router as invoices_router
+    from backend.routers.purchase_orders import router as po_router
 except ModuleNotFoundError:
     # Fallback for internal folder imports
     from agents.context_agent import Commitment, ContextAgent, ContextAgentError
@@ -62,6 +68,12 @@ except ModuleNotFoundError:
     from routers.assistant import router as assistant_router
     from routers.users import router as users_router
     from routers.upload import router as upload_router
+    from routers.client_sign import router as client_sign_router
+    from routers.templates import router as templates_router
+    from routers.brand import router as brand_router
+    from routers.contracts import router as contracts_router
+    from routers.invoices import router as invoices_router
+    from routers.purchase_orders import router as po_router
 
 
 logger = logging.getLogger("voicecontract.capture")
@@ -236,11 +248,11 @@ class SessionRegistry:
         self._archives: dict[str, dict[str, Any]] = {}
         self._lock = asyncio.Lock()
 
-    async def create(self, client_id: str) -> CaptureSession:
+    async def create(self, *, client_id: str, session_id: str | None = None) -> CaptureSession:
         async with self._lock:
-            session_id = secrets.token_urlsafe(24)
-            session = CaptureSession(session_id=session_id, client_id=client_id, started_at=time.time())
-            self._sessions[session_id] = session
+            sid = session_id or secrets.token_urlsafe(12)
+            session = CaptureSession(session_id=sid, client_id=client_id)
+            self._sessions[sid] = session
             return session
 
     async def remove(self, session_id: str) -> None:
@@ -258,8 +270,29 @@ class SessionRegistry:
             session = self._sessions.get(session_id)
             if session is not None:
                 return session.export_legal_inputs()
+            
             archived = self._archives.get(session_id)
-            return dict(archived) if archived is not None else None
+            if archived is not None:
+                return dict(archived)
+
+        # DB Fallback (for Uploads or Restarts)
+        from backend.database.client import supabase_admin
+        if supabase_admin:
+            try:
+                res = supabase_admin.table("deals").select("friction_summary").eq("session_id", session_id).single().execute()
+                if res.data and res.data.get("friction_summary"):
+                    import json as _json
+                    friction = res.data["friction_summary"]
+                    if isinstance(friction, str): friction = _json.loads(friction)
+                    
+                    return {
+                        "transcript": friction.get("raw_transcript", ""),
+                        "commitments": friction.get("blueprint", {}).get("commitments", []) or friction.get("committed_terms", []),
+                        "identity": friction.get("client_company", "Unknown")
+                    }
+            except: pass
+            
+        return None
 
     async def snapshot(self) -> dict[str, Any]:
         async with self._lock:
@@ -305,6 +338,12 @@ app.include_router(signature_router)
 app.include_router(assistant_router)
 app.include_router(users_router)
 app.include_router(upload_router)
+app.include_router(client_sign_router)
+app.include_router(templates_router)
+app.include_router(brand_router)
+app.include_router(contracts_router)
+app.include_router(invoices_router)
+app.include_router(po_router)
 
 
 @app.on_event("startup")
@@ -687,8 +726,10 @@ async def capture_websocket(websocket: WebSocket) -> None:
         return
 
     client_id = websocket.query_params.get("client_id") or secrets.token_urlsafe(12)
+    session_id = websocket.query_params.get("session_id")
+    
     await websocket.accept(subprotocol="vcp.audio.v1")
-    session = await registry.create(client_id=client_id)
+    session = await registry.create(client_id=client_id, session_id=session_id)
     consumer_task = asyncio.create_task(_audio_consumer(session), name=f"capture-consumer-{session.session_id}")
     sender_task = asyncio.create_task(_websocket_sender(session, websocket), name=f"capture-sender-{session.session_id}")
 

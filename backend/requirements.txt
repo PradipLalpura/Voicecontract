@@ -30,5 +30,8 @@ cryptography
 # PDF Generation
 reportlab
 
+# Email Dispatch
+resend
+
 # Environment
 python-dotenv

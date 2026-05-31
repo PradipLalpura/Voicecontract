@@ -38,6 +38,7 @@ export default function Dashboard() {
   const [enableCoach, setEnableCoach] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [startError, setStartError] = useState("");
+  const [clientLogo, setClientLogo] = useState("");
 
   const openPreFlight = (mode: "live" | "upload") => {
     setIngestionMode(mode);
@@ -52,6 +53,7 @@ export default function Dashboard() {
     setEnableCoach(false);
     setIsStarting(false);
     setStartError("");
+    setClientLogo("");
     setShowPreFlight(true);
   };
 
@@ -98,7 +100,10 @@ export default function Dashboard() {
 
       // Fetch Real Deals
       try {
-        const token = hasClerk ? await getToken() : "dev_token";
+        let token = "dev_token";
+        if (hasClerk) {
+          try { token = (await getToken()) || "dev_token"; } catch(e) {}
+        }
         const headers = {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {})
@@ -136,7 +141,10 @@ export default function Dashboard() {
     setIsStarting(true);
     setStartError("");
     try {
-      const token = hasClerk ? await getToken() : "dev_token";
+      let token = "dev_token";
+      if (hasClerk) {
+        try { token = (await getToken()) || "dev_token"; } catch(e) {}
+      }
       
       const res = await fetch(`${apiUrl}/api/dashboard/deals/draft`, {
         method: "POST",
@@ -151,7 +159,8 @@ export default function Dashboard() {
           client_email: clientEmail,
           client_whatsapp: clientWhatsapp,
           documents: { msa: docMsa, invoice: docInvoice, po: docPo },
-          use_coach: enableCoach
+          use_coach: enableCoach,
+          client_logo: clientLogo
         })
       });
 
@@ -166,13 +175,25 @@ export default function Dashboard() {
       }
 
       setShowPreFlight(false);
-      router.push(`/cockpit?session=${data.id}`);
+      router.push(`/cockpit?session=${data.id}&coach=${enableCoach}`);
     } catch (error: any) {
       console.error("Meeting start failed:", error);
       setStartError(error.message || "Failed to start meeting. Check your connection.");
     } finally {
       setIsStarting(false);
     }
+  };
+
+  const closePreFlight = () => {
+    setShowPreFlight(false);
+    setIsStarting(false);
+    setStartError("");
+    setClientName("");
+    setClientCompany("");
+    setClientAddress("");
+    setClientEmail("");
+    setClientWhatsApp("");
+    setClientLogo("");
   };
 
   const handleAudioSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -182,7 +203,10 @@ export default function Dashboard() {
     setIsStarting(true);
     setStartError("");
     try {
-      const token = hasClerk ? await getToken() : "dev_token";
+      let token = "dev_token";
+      if (hasClerk) {
+        try { token = (await getToken()) || "dev_token"; } catch(e) {}
+      }
 
       // Create a draft deal first
       const draftRes = await fetch(`${apiUrl}/api/dashboard/deals/draft`, {
@@ -198,11 +222,13 @@ export default function Dashboard() {
           client_email: clientEmail,
           client_whatsapp: clientWhatsapp,
           documents: { msa: docMsa, invoice: docInvoice, po: docPo },
-          use_coach: false
+          use_coach: false,
+          client_logo: clientLogo,
+          brand_dna_url: "dna_attached"
         })
       });
 
-      if (!draftRes.ok) throw new Error("Failed to create session");
+      if (!draftRes.ok) throw new Error("Neural Grid rejected deal creation.");
       const draftData = await draftRes.json();
 
       // Upload the audio file
@@ -218,13 +244,13 @@ export default function Dashboard() {
         body: formData
       });
 
-      if (!uploadRes.ok) throw new Error("Failed to upload recording");
+      if (!uploadRes.ok) throw new Error("Audio ingestion failed. Neural link timeout.");
 
       setShowPreFlight(false);
       router.push(`/processing?session=${draftData.id}`);
     } catch (error: any) {
       console.error("Upload failed:", error);
-      setStartError(error.message || "Upload failed");
+      setStartError(error.message || "Upload failed. Check grid connection.");
     } finally {
       setIsStarting(false);
     }
@@ -304,7 +330,30 @@ export default function Dashboard() {
                     />
                   </div>
                   
-                  <div className="bg-background border border-border rounded-2xl p-6 space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-text-muted mb-2">Client Logo</label>
+                    <div className="relative">
+                      <input 
+                        type="file" accept="image/*" 
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onload = () => setClientLogo(reader.result as string);
+                          reader.readAsDataURL(file);
+                        }}
+                        className="w-full bg-background border border-border rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-primary/40 font-bold text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-primary/10 file:text-primary file:font-bold file:text-xs file:uppercase file:tracking-widest"
+                      />
+                      {clientLogo && (
+                        <div className="mt-3 flex items-center gap-3">
+                          <img src={clientLogo} alt="Logo" className="w-12 h-12 object-contain rounded-xl border border-border" />
+                          <span className="text-[10px] font-bold text-green-600 uppercase tracking-widest">Logo_Loaded</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                   
+                   <div className="bg-background border border-border rounded-2xl p-6 space-y-4">
                     <label className="block text-[10px] font-black uppercase tracking-widest text-text-muted">Required Documents to Mint</label>
                     <div className="flex flex-wrap gap-4">
                        <label className="flex items-center gap-2 cursor-pointer group">
@@ -368,9 +417,7 @@ export default function Dashboard() {
         </div>
         
         <div className="flex items-center gap-8">
-           <button onClick={() => router.push('/settings')} className="text-text-muted hover:text-primary transition-colors font-black uppercase tracking-widest text-[10px]">Vault_Settings</button>
-           <div className="w-px h-6 bg-border/60" />
-           {hasClerk ? <UserButton afterSignOutUrl="/" /> : <div className="w-10 h-10 bg-surface-muted rounded-full border border-border flex items-center justify-center text-xs font-black text-text-muted shadow-inner">CHIEF</div>}
+           <button onClick={() => router.push('/settings')} className="px-6 py-3 bg-text text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-apple hover:bg-black transition-all">Vault_Settings</button>
         </div>
       </header>
 
@@ -424,6 +471,45 @@ export default function Dashboard() {
                  </div>
               </div>
            </motion.button>
+        </div>
+
+        {/* Document Generators */}
+        <div className="space-y-6">
+           <div className="space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Document_Forge</span>
+              <h3 className="text-2xl font-black tracking-tight uppercase italic">AI Generators</h3>
+           </div>
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <motion.button whileHover={{ y: -3, scale: 1.01 }} whileTap={{ scale: 0.98 }}
+                onClick={() => router.push('/contracts/new')}
+                className="relative bg-surface rounded-[32px] p-8 shadow-lg border border-border/50 text-left group hover:border-primary/30 transition-all">
+                 <div className="w-12 h-12 bg-violet-100 rounded-2xl flex items-center justify-center mb-5">
+                    <svg className="w-6 h-6 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                 </div>
+                 <h4 className="text-xl font-black uppercase tracking-tight italic mb-2">New_Contract</h4>
+                 <p className="text-xs text-text-muted font-medium">MSA, NDA, SoW, Employment — AI-crafted with 13 standard clauses</p>
+              </motion.button>
+
+              <motion.button whileHover={{ y: -3, scale: 1.01 }} whileTap={{ scale: 0.98 }}
+                onClick={() => router.push('/invoices/new')}
+                className="relative bg-surface rounded-[32px] p-8 shadow-lg border border-border/50 text-left group hover:border-primary/30 transition-all">
+                 <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center mb-5">
+                    <svg className="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                 </div>
+                 <h4 className="text-xl font-black uppercase tracking-tight italic mb-2">New_Invoice</h4>
+                 <p className="text-xs text-text-muted font-medium">GST-compliant with CGST/SGST/IGST, HSN codes, amount in words</p>
+              </motion.button>
+
+              <motion.button whileHover={{ y: -3, scale: 1.01 }} whileTap={{ scale: 0.98 }}
+                onClick={() => router.push('/purchase-orders/new')}
+                className="relative bg-surface rounded-[32px] p-8 shadow-lg border border-border/50 text-left group hover:border-primary/30 transition-all">
+                 <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center mb-5">
+                    <svg className="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                 </div>
+                 <h4 className="text-xl font-black uppercase tracking-tight italic mb-2">New_PO</h4>
+                 <p className="text-xs text-text-muted font-medium">Professional purchase orders with delivery terms & vendor T&C</p>
+              </motion.button>
+           </div>
         </div>
 
         {/* Meeting Ledger - Historical Memory */}

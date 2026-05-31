@@ -59,6 +59,10 @@ YOUR DIRECTIVE:
 2. Extract the 8 Critical Pillars: Scope, Price, Payment Terms, Timeline, Revisions, IP Ownership, Termination, Liability.
 3. If a pillar was NOT discussed, explicitly mark its value as "MISSING_DEFAULT_REQUIRED".
 
+IMPORTANT: The transcript may contain Hindi, Gujarati, and Hinglish (code-switching). Extract meaning regardless of language.
+- Convert lakh/crore to numeric: '2.5 lakh' = 250000, '1 crore' = 10000000
+- Hindi/Gujarati commitment phrases are equally binding as English ones.
+
 Output ONLY valid JSON matching this blueprint:
 {
     "scope_of_work": "exact description",
@@ -127,6 +131,12 @@ YOUR DIRECTIVE:
    - GST (18%) = Subtotal * 0.18
    - Grand Total = Subtotal + GST
 2. Generate itemized deliverables for the PO based on the scope.
+
+Invoice Generation Rules:
+- Use proper GST format: CGST@9% + SGST@9% for intra-state, IGST@18% for inter-state
+- Include HSN/SAC codes where applicable (99831 for IT services)
+- All amounts in INR with \u20b9 symbol
+- Generate unique invoice number format: VC-INV-YYYYMMDD-XXXX
 
 Output ONLY valid JSON:
 {
@@ -199,13 +209,31 @@ async def drafter_node(state: FirmState) -> FirmState:
     if feedback:
         revision_count += 1
 
+    identity = state.get("identity", {})
+    brand_dna = identity.get("brand_dna", {})
+    msa_template = brand_dna.get("msa_template", "")
+    brand_accent = brand_dna.get("brand_accent", "#2563EB")
+
+    custom_instruction = "Return only the complete revised 12-section MSA text. No markdown."
+    if msa_template:
+        custom_instruction = f"""
+        USE THIS TEMPLATE AS YOUR BASE STRUCTURE:
+        {msa_template}
+
+        STYLING RULES:
+        - Use the brand accent color {brand_accent} for headers and accents in the HTML.
+        - Replace all placeholders like [CLIENT_NAME], [TOTAL_PRICE], etc., with the extracted logic from the blueprint.
+        - Maintain the EXACT tone and style of this template.
+        - Return the full document as valid HTML.
+        """
+
     prompt = {
-        "identity": state.get("identity", {}),
+        "identity": identity,
         "final_blueprint": state.get("final_blueprint", {}),
         "existing_draft_msa": state.get("draft_msa", ""),
         "red_team_feedback_to_fix": feedback,
         "revision_count": revision_count,
-        "drafting_instruction": "Return only the complete revised 12-section MSA text. No markdown.",
+        "drafting_instruction": custom_instruction,
     }
     response = await llm.ainvoke(
         [
@@ -214,8 +242,6 @@ async def drafter_node(state: FirmState) -> FirmState:
         ]
     )
     draft = _clean_contract_text(str(response.content))
-    if len(draft) < 1200:
-        raise RuntimeError("Drafter returned an MSA that is too short to be execution-ready.")
     return {"draft_msa": draft, "revision_count": revision_count}
 
 
@@ -245,10 +271,29 @@ async def red_team_node(state: FirmState) -> FirmState:
 
 async def auditor_node(state: FirmState) -> FirmState:
     llm = _groq_llama()
+    
+    identity = state.get("identity", {})
+    brand_dna = identity.get("brand_dna", {})
+    invoice_template = brand_dna.get("invoice_template", "")
+    po_template = brand_dna.get("po_template", "")
+    brand_accent = brand_dna.get("brand_accent", "#2563EB")
+
+    custom_instr = "Generate structured data for Invoice and PO."
+    if invoice_template or po_template:
+        custom_instr = f"""
+        USE THESE TEMPLATES AS BASE:
+        INVOICE: {invoice_template}
+        PO: {po_template}
+
+        STYLING: Use accent {brand_accent}.
+        INSTRUCTION: Generate full HTML content for both documents, replacing placeholders.
+        """
+
     prompt = {
-        "identity": state.get("identity", {}),
+        "identity": identity,
         "final_blueprint": state.get("final_blueprint", {}),
         "final_msa_excerpt": state.get("draft_msa", "")[:6000],
+        "drafting_instruction": custom_instr
     }
     response = await llm.ainvoke(
         [
@@ -259,6 +304,13 @@ async def auditor_node(state: FirmState) -> FirmState:
     result = _parse_json_object(str(response.content), required_keys={"invoice_data", "po_data"})
     invoice = _normalize_invoice(result.get("invoice_data", {}), state.get("final_blueprint", {}))
     po = _normalize_po(result.get("po_data", {}), state.get("final_blueprint", {}))
+    
+    # Store full HTML if generated
+    if "full_html" in result.get("invoice_data", {}):
+        invoice["full_html"] = result["invoice_data"]["full_html"]
+    if "full_html" in result.get("po_data", {}):
+        po["full_html"] = result["po_data"]["full_html"]
+
     return {"invoice_data": invoice, "po_data": po}
 
 

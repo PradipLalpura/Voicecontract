@@ -16,6 +16,7 @@ type CaptureSource = "microphone" | "system";
 type LiveAudioOptions = {
   wsUrl?: string;
   clientId?: string;
+  sessionId?: string;
   enableMicrophone?: boolean;
   enableSystemAudio?: boolean;
   chunkFrames?: number;
@@ -32,7 +33,7 @@ type LiveAudioEvent =
   | { type: "backpressure"; queue?: number }
   | { type: "error"; message: string }
   | { type: "stopped" }
-  | { type: "transcript"; text: string; full_transcript: string; channel: number }
+  | { type: "transcript"; text: string; full_transcript: string }
   | { type: "pulse"; kind: string; content: string; pillar?: string; value?: string; urgency?: string; source: string };
 
 type WorkletMessage =
@@ -175,6 +176,9 @@ export function useLiveAudio(options: LiveAudioOptions = {}) {
     const timestamp = String(Date.now() / 1000);
     const url = new URL(wsUrl, window.location.href);
     url.searchParams.set("client_id", clientIdRef.current);
+    if (options.sessionId) {
+      url.searchParams.set("session_id", options.sessionId);
+    }
     if (sharedSecretSigner) {
       const signature = await sharedSecretSigner(clientIdRef.current, timestamp);
       url.searchParams.set("ts", timestamp);
@@ -333,8 +337,7 @@ export function useLiveAudio(options: LiveAudioOptions = {}) {
             const serverMessage = payload.detail || payload.code || "Capture server error";
             emit({ type: "error", message: String(serverMessage) });
           } else if (payload.type === "transcript") {
-            const ch = payload.channel === "microphone" ? 1 : payload.channel === "system" ? 2 : 1;
-            emit({ type: "transcript", text: String(payload.text), full_transcript: String(payload.text), channel: ch });
+            emit({ type: "transcript", text: String(payload.text), full_transcript: String(payload.text) });
           } else if (payload.type === "pulse" && payload.pulse) {
             const p = payload.pulse as any;
             emit({ 

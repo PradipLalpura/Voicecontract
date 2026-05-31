@@ -348,9 +348,10 @@ export default function DocumentVault() {
               <div className="absolute inset-0 bg-[url('/paper.svg')] opacity-20 pointer-events-none mix-blend-multiply" />
 
               <div className="relative z-10">
-                <pre className="whitespace-pre-wrap font-sans text-xl text-text leading-relaxed tracking-tight bg-transparent">
-                  {documents[activeDoc]}
-                </pre>
+                <div 
+                  className="whitespace-pre-wrap font-sans text-lg text-text leading-relaxed tracking-tight bg-transparent rich-text-contract"
+                  dangerouslySetInnerHTML={{ __html: documents[activeDoc] }}
+                />
 
                 <div className="mt-32 pt-10 border-t-2 border-slate-100 flex justify-between items-center text-[10px] font-black text-text-muted uppercase tracking-[0.4em]">
                   <span>Auth: VoiceContract_AI</span>
@@ -413,9 +414,9 @@ export default function DocumentVault() {
                 </div>
               </div>
             ) : !clientLinkSent ? (
-              <div className="bg-surface border border-border rounded-[40px] p-10 shadow-xl space-y-10 sticky top-32">
+              <div className="bg-surface border border-border rounded-[40px] p-10 shadow-xl space-y-8 sticky top-32">
                 <div className="text-center space-y-4">
-                  <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                     </svg>
@@ -424,26 +425,81 @@ export default function DocumentVault() {
                     Seal_Applied
                   </h3>
                   <p className="text-text-muted font-bold text-xs leading-relaxed uppercase tracking-widest">
-                    Your vector is locked.
-                    <br />
-                    Awaiting Client Signature.
+                    Your vector is locked.<br />Send to client for counter-signature.
                   </p>
                 </div>
 
-                <div className="space-y-4 pt-6 border-t border-border">
+                {/* Copy Link */}
+                <button
+                  onClick={() => {
+                    const link = `${window.location.origin}/client-sign/${sessionId}`;
+                    navigator.clipboard.writeText(link);
+                    setError(""); // Clear any previous error
+                    alert("Signing link copied to clipboard!");
+                  }}
+                  className="w-full py-4 bg-background border-2 border-border rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-surface-muted transition-all flex items-center justify-center gap-3"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                  Copy_Signing_Link
+                </button>
+
+                <div className="space-y-3 pt-4 border-t border-border">
+                  {/* Email */}
                   <button
-                    onClick={handleDispatchToClient}
-                    disabled={isDispatching}
-                    className="w-full py-5 bg-primary text-white rounded-3xl font-black uppercase tracking-[0.1em] text-xs shadow-apple hover:bg-primary-hover transition-all transform active:scale-95 disabled:opacity-50"
+                    onClick={async () => {
+                      setIsDispatching(true);
+                      setError("");
+                      try {
+                        const token = hasClerk ? await getToken() : "dev_token";
+                        const signingLink = `${window.location.origin}/client-sign/${sessionId}`;
+                        const res = await fetch(`${apiUrl}/api/dispatch/send`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                          body: JSON.stringify({
+                            session_id: sessionId,
+                            channels: { email: dealData?.client_email || "", whatsapp: "" },
+                            client_name: dealData?.client_name || "",
+                            signing_link: signingLink,
+                          }),
+                        });
+                        if (!res.ok) throw new Error("Email dispatch failed");
+                        const data = await res.json();
+                        setTrackingId(data.tracking_id || "");
+                        setClientLinkSent(true);
+                      } catch (err: any) {
+                        setError(err.message || "Failed to send email");
+                      } finally {
+                        setIsDispatching(false);
+                      }
+                    }}
+                    disabled={isDispatching || !dealData?.client_email}
+                    className="w-full py-4 bg-text text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-black transition-all transform active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
                   >
-                    {isDispatching ? "Dispatching..." : "Request_Client_Signature"}
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    {isDispatching ? "Sending..." : "Send_via_Email"}
                   </button>
+
+                  {/* WhatsApp */}
+                  <button
+                    onClick={async () => {
+                      const signingLink = `${window.location.origin}/client-sign/${sessionId}`;
+                      const phone = (dealData?.client_whatsapp || "").replace(/[+\s-]/g, "");
+                      const message = `Your contract is ready for signature. Review and sign here: ${signingLink}`;
+                      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank");
+                    }}
+                    disabled={!dealData?.client_whatsapp}
+                    className="w-full py-4 bg-green-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-green-700 transition-all transform active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a8 8 0 01-4.243-1.212l-.29-.182-3.055.908.866-3.055-.198-.298A8 8 0 1112 20z"/></svg>
+                    Send_via_WhatsApp
+                  </button>
+
                   <div className="flex items-center gap-3 px-4 py-3 bg-blue-50 border border-blue-100 rounded-2xl">
                     <svg className="w-5 h-5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <p className="text-[10px] font-bold text-blue-600 leading-tight uppercase">
-                      A secure, one-time link will be sent via WhatsApp and Email.
+                      Client will receive a secure one-time signing link.
                     </p>
                   </div>
                 </div>

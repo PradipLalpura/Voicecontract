@@ -26,48 +26,50 @@ export default function OnboardingPage() {
     
     try {
       const token = await getToken();
-      const host = process.env.NEXT_PUBLIC_CAPTURE_WS_HOST || "localhost:8000";
+      let host = process.env.NEXT_PUBLIC_CAPTURE_WS_HOST || "localhost:8000";
+      host = host.replace(/^wss?:\/\//, "").split('/')[0];
       const protocol = window.location.protocol === "https:" ? "https:" : "http:";
       
+      const payload = {
+        company_name: data.company_name,
+        gst_number: data.gst_number,
+        address: data.address,
+        template_strategy: data.template_strategy,
+        brand_dna_url: data.brand_dna_url || "",
+        existing_msa_filename: data.existing_msa_filename || "",
+        onboarding_complete: true
+      };
+
       const res = await fetch(`${protocol}//${host}/api/users/onboard`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({
-          company_name: data.company_name,
-          gst_number: data.gst_number,
-          address: data.address,
-          brand_accent: data.brand_accent,
-          template_strategy: data.template_strategy,
-          brand_dna_url: data.brand_dna_url || "",
-          existing_msa_filename: data.existing_msa_filename || "",
-          onboarding_complete: true
-        })
+        body: JSON.stringify(payload)
       });
 
       if (res.ok) {
-        // Update Clerk Metadata to break the loop permanently
+        // Break the loop: update local storage first
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('onboardingComplete', 'true');
+        }
+
+        // Update Clerk Metadata (async, don't wait for completion to route)
         if (user) {
-          await user.update({
+          user.update({
             unsafeMetadata: {
               ...user.unsafeMetadata,
               onboardingComplete: true,
               company_name: data.company_name
             }
-          });
+          }).catch(err => console.error("Clerk sync failed", err));
         }
         
-        // Save local flag as double insurance
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('onboardingComplete', 'true');
-        }
-        
-        // Brief delay to allow metadata sync
+        // Success state and route
         setTimeout(() => {
           router.push("/dashboard");
-        }, 1000);
+        }, 800);
       } else {
         const errBody = await res.json().catch(() => null);
         throw new Error(errBody?.detail || "Failed to save profile to database.");
@@ -75,7 +77,7 @@ export default function OnboardingPage() {
     } catch (error: any) {
       console.error("Onboarding failed:", error);
       setIsSubmitting(false);
-      setErrorMsg(error?.message || "System error during onboarding. Please try again.");
+      setErrorMsg(error?.message || "Neural grid synchronization failed. Please try again.");
     }
   };
 
