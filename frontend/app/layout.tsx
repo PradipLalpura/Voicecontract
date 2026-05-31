@@ -15,20 +15,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // If Clerk key is missing, we render without ClerkProvider to prevent the 500 error
-  if (!clerkKey) {
-    return (
-      <html lang="en">
-        <body className="selection:bg-primary/30 text-text bg-background">
-          <main className="min-h-screen">
-            {children}
-            <ClientOrbWrapper />
-          </main>
-        </body>
-      </html>
-    );
-  }
-
   return (
     <ClerkProvider
       appearance={{

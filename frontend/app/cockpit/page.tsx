@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLiveAudio } from "@/hooks/useLiveAudio";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -13,7 +13,7 @@ interface TermRequirement {
   value?: string;
 }
 
-export default function Cockpit() {
+function CockpitContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session");
@@ -259,5 +259,13 @@ export default function Cockpit() {
 
       </main>
     </div>
+  );
+}
+
+export default function Cockpit() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <CockpitContent />
+    </Suspense>
   );
 }

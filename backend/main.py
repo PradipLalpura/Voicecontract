@@ -94,14 +94,7 @@ CONTEXT_MIN_DELTA_CHARS = int(os.getenv("CONTEXT_MIN_DELTA_CHARS", "120"))
 CONTEXT_MIN_INTERVAL_SECONDS = float(os.getenv("CONTEXT_MIN_INTERVAL_SECONDS", "2.0"))
 TRANSCRIPT_WINDOW_SEGMENTS = int(os.getenv("TRANSCRIPT_WINDOW_SEGMENTS", "80"))
 SESSION_ARCHIVE_LIMIT = int(os.getenv("SESSION_ARCHIVE_LIMIT", "128"))
-ALLOWED_ORIGINS = {
-    origin.strip()
-    for origin in os.getenv(
-        "ALLOWED_ORIGINS",
-        "http://localhost:3000,http://127.0.0.1:3000,https://localhost:3000",
-    ).split(",")
-    if origin.strip()
-}
+ALLOWED_ORIGINS = {"*"} # Permissive for Buildathon Submission
 CAPTURE_SHARED_SECRET = os.getenv("CAPTURE_SHARED_SECRET", "")
 
 

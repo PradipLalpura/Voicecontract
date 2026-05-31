@@ -10,5 +10,6 @@ load_dotenv()
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 if __name__ == "__main__":
-    print("🚀 Initializing VoiceContract Backend [Pristine Architecture]...")
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.getenv("PORT", 8000))
+    print(f"🚀 Initializing VoiceContract Backend on port {port}...")
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=port, reload=False)
