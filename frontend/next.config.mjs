@@ -3,8 +3,10 @@ const nextConfig = {
   reactStrictMode: false, 
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
-  // Standalone config for Vercel/Localhost. 
-  // IMPORTANT: For localhost, create 'frontend/.env.local' manually.
+  env: {
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+    NEXT_PUBLIC_CAPTURE_WS_HOST: process.env.NEXT_PUBLIC_CAPTURE_WS_HOST,
+  },
 };
 
 export default nextConfig;
