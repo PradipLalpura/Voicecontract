@@ -15,33 +15,33 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_test_dummy_key_for_build_stability";
+  const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_test_dummy";
 
   return (
-    <ClerkProvider
-      publishableKey={clerkKey}
-      appearance={{
-        layout: {
-          socialButtonsVariant: 'blockButton',
-          logoPlacement: 'inside',
-        },
-        variables: {
-          colorPrimary: '#2563EB',
-          colorBackground: '#FFFFFF',
-          colorText: '#111827',
-          colorInputBackground: '#F9FAFB',
-          colorInputText: '#111827',
-        }
-      }}
-    >
-      <html lang="en">
-        <body className="selection:bg-primary/30 text-text bg-background">
+    <html lang="en">
+      <body className="selection:bg-primary/30 text-text bg-background">
+        <ClerkProvider
+          publishableKey={clerkKey}
+          appearance={{
+            layout: {
+              socialButtonsVariant: 'blockButton',
+              logoPlacement: 'inside',
+            },
+            variables: {
+              colorPrimary: '#2563EB',
+              colorBackground: '#FFFFFF',
+              colorText: '#111827',
+              colorInputBackground: '#F9FAFB',
+              colorInputText: '#111827',
+            }
+          }}
+        >
           <main className="min-h-screen">
             {children}
             <ClientOrbWrapper />
           </main>
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }
