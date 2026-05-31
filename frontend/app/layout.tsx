@@ -15,7 +15,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_test_dummy";
+  const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_test_dm9pY2Vjb250cmFjdF9kdW1teV9rZXk";
 
   return (
     <html lang="en">
@@ -23,17 +23,7 @@ export default function RootLayout({
         <ClerkProvider
           publishableKey={clerkKey}
           appearance={{
-            layout: {
-              socialButtonsVariant: 'blockButton',
-              logoPlacement: 'inside',
-            },
-            variables: {
-              colorPrimary: '#2563EB',
-              colorBackground: '#FFFFFF',
-              colorText: '#111827',
-              colorInputBackground: '#F9FAFB',
-              colorInputText: '#111827',
-            }
+            variables: { colorPrimary: '#2563EB' }
           }}
         >
           <main className="min-h-screen">
